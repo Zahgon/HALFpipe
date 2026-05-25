@@ -28,145 +28,18 @@ from ...utils.ops import first_float, first_str
 from ..memory import MemoryCalculator
 
 
-def _add_temporal_derivative_conditions(hrf: str, condition_names: list[str]) -> list[str]:
-    if hrf == "dgamma":
-        return condition_names
-
-    elif hrf == "dgamma_with_derivs":
-        suffixes = ["", "TD"]
-
-    elif hrf == "flobs":
-        suffixes = ["", "FN2", "FN3"]  #
-
-    else:
-        raise ValueError(f'Unknown HRF "{hrf}"')
-
-    return [f"{c}{suffix}" for c in condition_names for suffix in suffixes]
 
 
-def _get_scan_start(vals) -> float:
-    scan_start = vals["scan_start"]
-    assert isinstance(scan_start, float)
-    return scan_start
 
 
-def _events(subject_info):
-    return [subject_info]
 
 
-def _least_squares_all_events(subject_info):
-    from nipype.interfaces.base import Bunch
-
-    if not isinstance(subject_info, Bunch):
-        raise TypeError("subject_info must be a Bunch object")
-
-    conditions: list[str] = list()
-    onsets_lists: list[list[float]] = list()
-    durations_lists: list[list[float]] = list()
-    for condition, onsets, durations in zip(subject_info.conditions, subject_info.onsets, subject_info.durations, strict=True):
-        digits = len(str(len(onsets)))
-
-        for trial_index, (onset, duration) in enumerate(zip(onsets, durations, strict=True)):
-            conditions.append(f"{condition}_{trial_index:0{digits}d}")
-            onsets_lists.append([onset])
-            durations_lists.append([duration])
-
-    return [Bunch(conditions=conditions, onsets=onsets_lists, durations=durations_lists)]
 
 
-def _least_squares_single_events(subject_info):
-    from nipype.interfaces.base import Bunch
-
-    if not isinstance(subject_info, Bunch):
-        raise TypeError("subject_info must be a Bunch object")
-
-    conditions: list[str] = subject_info.conditions
-    onsets_lists: list[list[float]] = subject_info.onsets
-    durations_lists: list[list[float]] = subject_info.durations
-
-    subject_infos: list[Bunch] = list()
-
-    for condition_index, (condition, onsets, durations) in enumerate(
-        zip(conditions, onsets_lists, durations_lists, strict=True)
-    ):
-        # Prepare other conditions
-        other_conditions = conditions.copy()
-        other_conditions.pop(condition_index)
-        other_onsets_lists = onsets_lists.copy()
-        other_onsets_lists.pop(condition_index)
-        other_duration_lists = durations_lists.copy()
-        other_duration_lists.pop(condition_index)
-
-        digits = len(str(len(onsets)))
-
-        for trial_index, (onset, duration) in enumerate(zip(onsets, durations, strict=True)):
-            other_onsets = onsets.copy()
-            other_onsets.pop(trial_index)
-            other_durations = durations.copy()
-            other_durations.pop(trial_index)
-
-            subject_infos.append(
-                Bunch(
-                    conditions=[f"{condition}_{trial_index:0{digits}d}", f"{condition}_others", *other_conditions],
-                    onsets=[[onset], other_onsets, *other_onsets_lists],
-                    durations=[[duration], other_durations, *other_duration_lists],
-                )
-            )
-
-    return subject_infos
 
 
-def _group_least_squares_all_parameter_estimates(
-    subject_infos: list, param_estimates: list
-) -> tuple[list[str], list[list[str]], list[list[dict]]]:
-    from collections import defaultdict
-
-    from nipype.interfaces.base import Bunch
-
-    (subject_info,) = subject_infos
-    (param_estimates,) = param_estimates
-    if not isinstance(subject_info, Bunch):
-        raise TypeError("subject_info must be a Bunch object")
-
-    parameter_estimates: dict[str, list[str]] = defaultdict(list)
-    events: dict[str, list[dict[str, float]]] = defaultdict(list)
-
-    conditions: list[str] = subject_info.conditions
-    onsets: list[list[float]] = subject_info.onsets
-    durations: list[list[float]] = subject_info.durations
-    for condition, (onset,), (duration,), param_estimate in zip(conditions, onsets, durations, param_estimates, strict=False):
-        condition, _ = condition.rsplit("_", 1)  # Get condition name without trial index
-        parameter_estimates[condition].append(param_estimate)
-        events[condition].append(dict(onset=onset, duration=duration))
-
-    if parameter_estimates.keys() != events.keys():
-        raise ValueError("Mismatch between conditions in parameter estimates and events")
-    return list(parameter_estimates.keys()), list(parameter_estimates.values()), list(events.values())
 
 
-def _group_least_squares_single_parameter_estimates(
-    subject_infos: list, param_estimates: list
-) -> tuple[list[str], list[list[str]], list[list[dict]]]:
-    from collections import defaultdict
-
-    from nipype.interfaces.base import Bunch
-
-    parameter_estimates: dict[str, list[str]] = defaultdict(list)
-    events: dict[str, list[dict[str, float]]] = defaultdict(list)
-
-    for subject_info, param_estimate in zip(subject_infos, param_estimates, strict=True):
-        if not isinstance(subject_info, Bunch):
-            raise TypeError("subject_info must be a Bunch object")
-
-        condition, _ = subject_info.conditions[0].rsplit("_", 1)  # Get condition name without trial index
-        (onset,) = subject_info.onsets[0]
-        (duration,) = subject_info.durations[0]
-        parameter_estimates[condition].append(param_estimate[0])
-        events[condition].append(dict(onset=onset, duration=duration))
-
-    if parameter_estimates.keys() != events.keys():
-        raise ValueError("Mismatch between conditions in parameter estimates and events")
-    return list(parameter_estimates.keys()), list(parameter_estimates.values()), list(events.values())
 
 
 def init_task_based_wf(

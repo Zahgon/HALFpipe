@@ -67,8 +67,6 @@ class Layout:
             self.focused_view = None
         return view  # for chaining
 
-    def focus(self, view: "View") -> None:
-        self.focused_view = view
 
     def _calc_viewport(self, viewport_size: int) -> None:
         if self.focused_view is None:
@@ -121,9 +119,4 @@ class Layout:
         except ValueError:
             return None
 
-    def clear_status_bar(self) -> None:
-        self.status_bar.erase()
 
-    def set_status_bar(self, text: str) -> None:
-        self.clear_status_bar()
-        self.status_bar.addstr(0, 0, text, self.color.white)

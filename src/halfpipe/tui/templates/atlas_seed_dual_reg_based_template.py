@@ -89,31 +89,7 @@ class AtlasSeedDualRegBasedTemplate(FeatureTemplate):
         self.file_tags: list = []
         self.file_tag_init_flag = True
 
-    def compose(self) -> ComposeResult:
-        with ScrollableContainer(id="top_container_task_based"):
-            if self.images_to_use is not None:
-                yield self.tasks_to_use_selection_panel
-            yield self.file_panel_class(
-                default_file_tags=self.feature_dict[self.featurefield],
-                file_tagging=True,
-                id="top_file_panel",
-                classes="components file_panel",
-            )
-            yield LabelWithInputBox(
-                label=self.minimum_coverage_label,
-                value=self.feature_dict[self.minimum_coverage_tag],
-                classes="switch_with_input_box components",
-                id="minimum_coverage",
-            )
-            yield self.preprocessing_panel
 
-    async def on_mount(self) -> None:
-        try:
-            self.get_widget_by_id("minimum_coverage").border_title = "Minimum brain coverage"
-        except Exception:
-            pass
-        self.get_widget_by_id("file_tag_selection").border_title = self.file_selection_widget_header
-        self.get_widget_by_id("top_file_panel").border_title = self.widget_header
 
     @on(LabelWithInputBox.Changed, "#minimum_coverage")
     def _on_label_with_input_box_changed(self, message: Message) -> None:
@@ -129,7 +105,7 @@ class AtlasSeedDualRegBasedTemplate(FeatureTemplate):
         message : Message
             The message object containing information about the change.
         """
-        self.feature_dict[self.minimum_coverage_tag] = message.value
+        pass
 
     # @on(FilePanelTemplate.FileTagsChanged)
     # def on_file_tag_selection_changed(self, message) -> None:

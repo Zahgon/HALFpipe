@@ -69,10 +69,6 @@ class Step:
     def setup(self, ctx: Context) -> None:
         raise NotImplementedError
 
-    def teardown(self):
-        for view in reversed(self.views):
-            logger.debug(f'Removing view "{view}"')
-            self.app.layout.remove(view)
 
     @abstractmethod
     def run(self, ctx: Context) -> bool:
@@ -93,9 +89,6 @@ class BranchStep(Step):
 
     is_vertical: ClassVar[bool] = False
 
-    @property
-    def options(self) -> dict[str, type[Step] | None]:
-        return defaultdict(lambda: None)
 
     def _should_run(self, _):
         return True
@@ -145,6 +138,3 @@ class YesNoStep(BranchStep):
     def __init__(self, app, **kwargs) -> None:
         super(YesNoStep, self).__init__(app, **kwargs)
 
-    @property
-    def options(self) -> dict[str, type[Step] | None]:
-        return {"Yes": self.yes_step_type, "No": self.no_step_type}

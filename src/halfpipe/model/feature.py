@@ -34,14 +34,7 @@ class BaseFeatureSchema(Schema):
 
     type = fields.Str(validate=validate.OneOf(["falff", "reho"]))
 
-    @post_load
-    def make_object(self, data, **_):
-        return Feature(**data)
 
-    @post_dump(pass_many=False)
-    def remove_none(self, data, many):
-        assert many is False
-        return {key: value for key, value in data.items() if value is not None}
 
 
 class BaseTaskBasedFeatureSchema(BaseFeatureSchema):
@@ -89,16 +82,7 @@ class TaskBasedFeatureSchema(OneOfSchema):
         "single_trial_least_squares_all": SingleTrialTaskBasedFeatureSchema,
     }
 
-    def get_data_type(self, data: Any) -> str:
-        type = super().get_data_type(data)
-        if type is not None:
-            return type
-        return "multiple_trial"  # Default value
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, Feature):
-            return obj.estimation
-        raise Exception(f"Cannot get estimation for {obj}")
 
 
 class SeedBasedConnectivityFeatureSchema(BaseFeatureSchema):
@@ -154,7 +138,3 @@ class FeatureSchema(OneOfSchema):
         "falff": FALFFFeatureSchema,
     }
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, Feature):
-            return obj.type
-        raise Exception(f"Cannot get type for {obj}")

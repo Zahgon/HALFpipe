@@ -25,5 +25,3 @@ class ModelContrastSchema(OneOfSchema):
     type_field_remove = False
     type_schemas = {"t": TContrastSchema, "infer": InferredTypeContrastSchema}
 
-    def get_obj_type(self, obj):
-        return obj.get("type")

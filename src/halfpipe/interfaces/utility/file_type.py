@@ -21,23 +21,3 @@ class SplitByFileType(SimpleInterface):
     input_spec = SplitByFileTypeInputSpec
     output_spec = SplitByFileTypeOutputSpec
 
-    def _run_interface(self, runtime: Bunch) -> Bunch:
-        files = self.inputs.files
-
-        tsv_files: list[str] = list()
-        nifti_files: list[str] = list()
-
-        if isdefined(files):
-            for file in files:
-                _, ext = split_ext(file)
-
-                if ext in [".tsv"]:
-                    tsv_files.append(file)
-
-                elif ext in [".nii", ".nii.gz"]:
-                    nifti_files.append(file)
-
-        self._results["tsv_files"] = tsv_files
-        self._results["nifti_files"] = nifti_files
-
-        return runtime

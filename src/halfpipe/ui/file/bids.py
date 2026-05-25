@@ -9,8 +9,6 @@ from .anat import AnatStep, AnatSummaryStep
 
 
 class GetBidsDirStep(Step):
-    def _message(self):
-        return self.message
 
     def setup(self, ctx):
         self.bids_dir = None

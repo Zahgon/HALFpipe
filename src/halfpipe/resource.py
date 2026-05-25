@@ -56,9 +56,6 @@ def urllib_download(url: str, target: str):
     from tqdm import tqdm
 
     class TqdmUpTo(tqdm):
-        def update_to(self, b: int, bsize: int, tsize: int):
-            self.total = tsize
-            self.update(b * bsize - self.n)  # also sets self.n = b * bsize
 
     with TqdmUpTo(
         unit="B",

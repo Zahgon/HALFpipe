@@ -46,8 +46,6 @@ class BandpassFilterSettingSchema(OneOfSchema):
         "frequency_based": FrequencyBasedBandpassSettingSchema,
     }
 
-    def get_obj_type(self, obj):
-        return obj.get("type")
 
 
 class BaseSettingSchema(Schema):
@@ -86,6 +84,3 @@ class SettingSchema(BaseSettingSchema):
 
     output_image = fields.Boolean(dump_default=False)
 
-    @post_dump(pass_many=False)
-    def remove_none(self, data, many):
-        return {key: value for key, value in data.items() if value is not None}

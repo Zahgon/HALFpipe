@@ -176,7 +176,7 @@ class Context:
         dict
             A dictionary containing available images, keyed by entity type.
         """
-        return self.available_images
+        pass
 
 
 ctx = Context()

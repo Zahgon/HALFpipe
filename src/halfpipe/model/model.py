@@ -40,13 +40,7 @@ class BaseModelSchema(Schema):
     inputs = fields.List(fields.Str())
     filters = fields.List(fields.Nested(FilterSchema))
 
-    @post_load
-    def make_object(self, data, **kwargs):
-        return Model(**data)
 
-    @post_dump(pass_many=False)
-    def remove_none(self, data, many):
-        return {key: value for key, value in data.items() if value is not None}
 
 
 class FixedEffectsModelSchema(BaseModelSchema):
@@ -70,13 +64,6 @@ class LinearMixedEffectsModelSchema(MixedEffectsModelSchema):
     spreadsheet = fields.Str()
     contrasts = fields.List(fields.Nested(ModelContrastSchema))
 
-    @validates_schema
-    def validate_contrasts(self, data, **kwargs):
-        if "contrasts" not in data:
-            return
-        names = [c["name"] for c in data["contrasts"] if "name" in c]
-        if len(names) > len(set(names)):
-            raise ValidationError("Duplicate contrast name")
 
 
 class ModelSchema(OneOfSchema):
@@ -88,7 +75,3 @@ class ModelSchema(OneOfSchema):
         "lme": LinearMixedEffectsModelSchema,
     }
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, Model):
-            return obj.type
-        raise Exception("Cannot get obj type for Model")

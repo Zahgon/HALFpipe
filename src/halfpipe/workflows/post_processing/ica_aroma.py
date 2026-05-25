@@ -45,23 +45,7 @@ def _aroma_column_names(mixing: str | None = None, aroma_noise_ics: str | None =
     >>> print(column_indices)
     [3, 7]
     """
-
-    from math import ceil, log10
-
-    from halfpipe.utils.matrix import load_vector, ncol
-
-    n_components = ncol(mixing)
-    column_indices: list[int] = list(map(int, load_vector(aroma_noise_ics)))
-
-    leading_zeros = int(ceil(log10(n_components)))
-    column_names = []
-    for i in range(1, n_components + 1):
-        if i in column_indices:
-            column_names.append(f"aroma_noise_{i:0{leading_zeros}d}")
-        else:
-            column_names.append(f"aroma_signal_{i:0{leading_zeros}d}")
-
-    return column_names, column_indices
+    pass
 
 
 def init_ica_aroma_components_wf(

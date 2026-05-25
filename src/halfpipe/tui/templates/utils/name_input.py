@@ -97,23 +97,7 @@ class NameInput(DraggableModalScreen):
         the UI components, including the input field and the "Ok" and
         "Cancel" buttons.
         """
-        content_widgets = [
-            Input(
-                value=self.default_value,
-                placeholder="Enter a name",
-                id="feature_name",
-                classes="feature_name",
-            ),
-            Horizontal(
-                Button("Ok", id="ok", classes="button"),
-                Button("Cancel", id="cancel", classes="button"),
-                classes="button_grid",
-            ),
-        ]
-        if self.message is not None:
-            content_widgets.insert(0, Static(self.message, id="message"))
-
-        self.content.mount(*content_widgets)
+        pass
 
     @on(Button.Pressed, "#ok")
     def ok(self) -> None:
@@ -124,7 +108,7 @@ class NameInput(DraggableModalScreen):
         the UI components, including the input field and the "Ok" and
         "Cancel" buttons.
         """
-        self._confirm_window()
+        pass
 
     @on(Button.Pressed, "#cancel")
     def cancel(self) -> None:
@@ -143,7 +127,7 @@ class NameInput(DraggableModalScreen):
         This method is called when the user presses the Escape key. It
         calls `_cancel_window` to close the modal without confirmation.
         """
-        self._cancel_window()
+        pass
 
     def _confirm_window(self):
         """
@@ -155,33 +139,7 @@ class NameInput(DraggableModalScreen):
         error message. Otherwise, it dismisses the modal with the input
         name.
         """
-        feature_name = self.get_widget_by_id("feature_name").value
-        if feature_name == "":
-            self.app.push_screen(
-                Confirm(
-                    "Enter a name!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    #  left_button_variant=None,
-                    right_button_variant="default",
-                    title="Missing name",
-                    classes="confirm_error",
-                )
-            )
-
-        elif feature_name in self.occupied_feature_names:
-            self.app.push_screen(
-                Confirm(
-                    "Name already exists!\nUse another one.",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Existing name",
-                    classes="confirm_error",
-                )
-            )
-        else:
-            self.dismiss(feature_name)
+        pass
 
     def _cancel_window(self):
         """

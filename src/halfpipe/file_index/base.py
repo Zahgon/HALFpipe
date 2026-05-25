@@ -10,8 +10,6 @@ from ..logging import logger
 from ..utils.path import AnyPath
 
 
-def create_defaultdict_of_set() -> defaultdict[str, set[AnyPath]]:
-    return defaultdict(set)
 
 
 class FileIndex:
@@ -77,26 +75,8 @@ class FileIndex:
     def get_tag_value(self, path: AnyPath, key: str) -> str | None:
         return self.get_tags(path).get(key)
 
-    def set_tag_value(self, path: AnyPath, key: str, value: str) -> None:
-        # remove previous value
-        if self.get_tag_value(path, key) is not None:
-            previous_value = self.tags_by_paths[path].pop(key)
-            self.paths_by_tags[key][previous_value].remove(path)
-        if value is not None:
-            self.tags_by_paths[path][key] = value
-            self.paths_by_tags[key][value].add(path)
 
-    def get_tag_mapping(self, key: str) -> Mapping[str, set[AnyPath]]:
-        return self.paths_by_tags[key]
 
-    def get_tag_values(self, key: str, paths: set[AnyPath] | None = None) -> set[str]:
-        if key not in self.paths_by_tags:
-            return set()
-
-        if paths is None:
-            return set(self.paths_by_tags[key].keys())
-
-        return set(k for k, v in self.paths_by_tags[key].items() if not paths.isdisjoint(v))
 
     def get_tag_groups(self, keys: Iterable[str], paths: set[AnyPath] | None = None) -> Sequence[Mapping[str, str | None]]:
         if paths is None:
@@ -112,14 +92,7 @@ class FileIndex:
         """
         Replace the value `value` with `replacement` for the tag `key`
         """
-        values = self.paths_by_tags[key]
-        if value in values:
-            values[replacement].update(values.pop(value))
-
-        for tags in self.tags_by_paths.values():
-            if key in tags:
-                if tags[key] == value:
-                    tags[key] = replacement
+        pass
 
     def update(self, other: "FileIndex") -> None:
         # Prevent conflicting tags for repeated paths by only using the first occurrence

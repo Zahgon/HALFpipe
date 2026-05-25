@@ -143,8 +143,6 @@ class SpreadsheetIdColumnStep(Step):
 
 
 class AddSpreadsheetStep(Step):
-    def _messagefun(self):
-        return self.message
 
     def setup(self, ctx):
         self.filepath = None

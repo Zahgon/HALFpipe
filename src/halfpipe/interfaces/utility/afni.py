@@ -27,27 +27,6 @@ class ToAFNI(SimpleInterface):
     input_spec = ToAFNIInputSpec
     output_spec = ToAFNIOutputSpec
 
-    def _run_interface(self, runtime):
-        in_file = self.inputs.in_file
-        stem, ext = split_ext(in_file)
-
-        if ext in [".nii", ".nii.gz"]:
-            self._results["out_file"] = in_file
-            self._results["metadata"] = None
-
-        else:
-            data_frame = read_spreadsheet(in_file)
-
-            out_file = Path.cwd() / f"{stem}.1D"
-
-            array = data_frame.values.transpose()
-            array = np.nan_to_num(array, copy=False)
-            np.savetxt(out_file, array, delimiter=" ")
-
-            self._results["out_file"] = out_file
-            self._results["metadata"] = list(data_frame.columns)
-
-        return runtime
 
 
 class FromAFNIInputSpec(TraitedSpec):
@@ -65,27 +44,3 @@ class FromAFNI(SimpleInterface):
     input_spec = FromAFNIInputSpec
     output_spec = FromAFNIOutputSpec
 
-    def _run_interface(self, runtime):
-        in_file = self.inputs.in_file
-        stem, ext = split_ext(in_file)
-
-        if ext in [".nii", ".nii.gz"]:
-            self._results["out_file"] = in_file
-
-        else:
-            in_array = read_spreadsheet(in_file).values.transpose()
-
-            header = False
-            column_names = None
-            if isdefined(self.inputs.metadata):
-                header = True
-                column_names = list(self.inputs.metadata)
-
-            out_df = pd.DataFrame(data=in_array, columns=column_names)
-
-            out_file = Path.cwd() / f"{stem}.tsv"
-            out_df.to_csv(out_file, sep="\t", index=False, na_rep="n/a", header=header)
-
-            self._results["out_file"] = out_file
-
-        return runtime

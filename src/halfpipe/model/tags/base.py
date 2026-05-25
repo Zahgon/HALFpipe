@@ -10,9 +10,6 @@ class BaseTagsSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
-    @post_dump(pass_many=False)
-    def remove_none_tags(self, data, many):
-        return {entity: value for entity, value in data.items() if value is not None}
 
 
 class SubTagsSchema(BaseTagsSchema):

@@ -138,28 +138,5 @@ class SetValueModal(DraggableModalScreen):
                 Button(right_button_text, variant=right_button_variant, classes="button cancel", id="cancel_right_button"),
             ]
 
-    def on_mount(self) -> None:
-        self.content.mount(
-            Static(self.instructions), Input("0", id="input_prompt"), Horizontal(*self.buttons, classes="button_grid")
-        )
 
-    @on(Button.Pressed, ".ok")
-    def _on_ok_button_pressed(self):
-        input_widget = self.query_one(Input)
-        if input_widget.value == "" or not is_number_string(input_widget.value):
-            self.app.push_screen(
-                Confirm(
-                    "Enter a numerical value!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Value error",
-                    classes="confirm_error",
-                )
-            )
-        else:
-            self.dismiss(input_widget.value)
 
-    @on(Button.Pressed, ".cancel")
-    def _on_cancel_button_pressed(self):
-        self.dismiss(None)

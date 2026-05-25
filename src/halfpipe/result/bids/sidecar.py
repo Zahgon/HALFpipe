@@ -44,18 +44,8 @@ def translate_sidecar(value: Any, translate_key: Callable[[str], str]):
     return {translate_key(k): translate_sidecar(v, translate_key) for k, v in value.items()}
 
 
-def translate_from_bids(key):
-    if key in key_from_bids_map:
-        return key_from_bids_map[key]
-    else:
-        return underscore(key)
 
 
-def translate_to_bids(key):
-    if key in key_to_bids_map:
-        return key_to_bids_map[key]
-    else:
-        return camelize(key)
 
 
 def load_sidecar(path: AnyPath) -> tuple[dict[str, Any], dict[str, Any]]:

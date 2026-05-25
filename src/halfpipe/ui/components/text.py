@@ -46,21 +46,9 @@ class TextElement(Text):
         self._color = color
         self._value = value
 
-    @property
-    def value(self):
-        return self._value
 
-    @value.setter
-    def value(self, v):
-        self._value = v
 
-    @property
-    def color(self):
-        return self._color
 
-    @color.setter
-    def color(self, c):
-        self._color = c
 
     def __len__(self):
         return len(self._value)
@@ -100,16 +88,7 @@ class TextElementCollection(Text):
             text_elements = list()
         self.text_elements = text_elements
 
-    @property
-    def value(self) -> str:
-        ret = ""
-        for el in self.text_elements:
-            ret += str(el)
-        return ret
 
-    @property
-    def color(self):
-        return self.text_elements[0].color
 
     def append(self, el: Text):
         self.text_elements.append(el)

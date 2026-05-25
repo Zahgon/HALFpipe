@@ -46,5 +46,3 @@ class FilterSchema(OneOfSchema):
         "tag": TagFilterSchema,
     }
 
-    def get_obj_type(self, obj):
-        return obj.get("type")

@@ -73,35 +73,11 @@ class GroupLevelModelSelection(SelectionTemplate):
     ITEM_MAP = ITEM_MAP
     ITEM_KEY = ITEM_KEY
 
-    def on_mount(self) -> None:
-        self.get_widget_by_id("content_switcher").border_title = "Group-level models"
 
     def action_add_item(self) -> None:
         """Pops out the model type selection windows and then uses add_new_item function to mount a new model
         widget."""
-        # First check whether there are actually some features, if not pop a warning modal.
-        self.tasks_to_use: dict = {}
-        for w in ctx.cache:
-            if "features" in ctx.cache[w] and ctx.cache[w]["features"] != {}:
-                if ctx.cache[w]["features"]["type"] != "atlas_based_connectivity":
-                    self.tasks_to_use[ctx.cache[w]["features"]["name"]] = True
-        if self.tasks_to_use == {}:
-            self.app.push_screen(
-                Confirm(
-                    "There are not features! Please select at least one feature and then try again.",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="No features",
-                    classes="confirm_error",
-                )
-            )
-        else:
-            occupied_item_names = [self.feature_items[item].name for item in self.feature_items]
-            self.app.push_screen(
-                GroupLevelModelSelectionModal(occupied_item_names),
-                self.add_new_item,
-            )
+        pass
 
     def fill_cache_and_create_new_content_item(self, new_item):
         item_type, item_name = new_item
@@ -125,14 +101,8 @@ class GroupLevelModelSelection(SelectionTemplate):
 
     def on_list_view_selected(self, event: ListView.Selected) -> None:
         """Changes border title color according to the feature type."""
-        current_id = event.item.id
-        current_feature = self.feature_items[current_id]
-        self.get_widget_by_id("content_switcher").current = current_id
-        self.get_widget_by_id("content_switcher").border_title = "{}: {}".format(
-            self.ITEM_MAP[current_feature.type], current_feature.name
-        )
-        self.get_widget_by_id("content_switcher").styles.border_title_color = "white"
+        pass
 
     def action_delete_item(self) -> None:
         """Unmount the feature and delete its entry from dictionaries, including aggregate models."""
-        self.app.push_screen(Confirm(), lambda respond: self._delete_item(respond, check_aggregate=True))
+        pass

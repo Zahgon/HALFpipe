@@ -42,8 +42,3 @@ class PreprocessedOutputOptions(TaskBased):
     async def mount_tasks(self):
         pass
 
-    def compose(self) -> ComposeResult:
-        with ScrollableContainer(id="top_container_task_based"):
-            if self.images_to_use is not None:
-                yield self.tasks_to_use_selection_panel
-            yield self.preprocessing_panel

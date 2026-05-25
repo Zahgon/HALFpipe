@@ -21,12 +21,3 @@ class ApplyTransformsInputSpec(NipypeApplyTransformsInputSpec):
 class ApplyTransforms(FixHeaderApplyTransforms):
     input_spec = ApplyTransformsInputSpec
 
-    def _run_interface(self, runtime, correct_return_codes=(0,)):
-        if self.inputs.print_out_composite_warp_file:
-            # Run normally
-            runtime = super(FixHeaderApplyTransforms, self)._run_interface(runtime, correct_return_codes)
-        else:
-            # Run fixed
-            runtime = super(ApplyTransforms, self)._run_interface(runtime, correct_return_codes)
-
-        return runtime

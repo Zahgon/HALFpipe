@@ -40,21 +40,5 @@ class SetInitialVolumesRemovalModal(DraggableModalScreen):
         super().__init__(**kwargs)
         self.title_bar.title = "Remove initial volumes"
 
-    def on_mount(self) -> None:
-        self.content.mount(
-            Static("Set number of how many initial volumes to remove"),
-            Input("", id="input_prompt"),
-            Horizontal(Button("OK", id="ok"), Button("Cancel", id="cancel")),
-        )
 
-    @on(Button.Pressed, "#ok")
-    def _on_ok_button_pressed(self):
-        input_widget = self.query_one(Input)
-        if input_widget.value == "":
-            self.dismiss("0")
-        else:
-            self.dismiss(input_widget.value)
 
-    @on(Button.Pressed, "#cancel")
-    def _on_cancel_button_pressed(self):
-        self.dismiss(False)

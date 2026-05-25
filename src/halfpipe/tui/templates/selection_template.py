@@ -121,17 +121,7 @@ class SelectionTemplate(Widget):
         ComposeResult
             The result of composing the child widgets.
         """
-        yield VerticalScroll(
-            Grid(
-                Button("New", classes="add_button", id="new_item_button"),
-                Button("Rename", classes="rename_button", id="rename_item_button"),
-                Button("Duplicate", classes="duplicate_button", id="duplicate_item_button"),
-                Button("Delete", classes="delete_button", id="delete_item_button"),
-                classes="buttons",
-            ),
-            id="sidebar",
-        )
-        yield ContentSwitcher(id="content_switcher")
+        pass
 
     @on(Button.Pressed, "#sidebar .add_button")
     async def add(self) -> None:
@@ -151,7 +141,7 @@ class SelectionTemplate(Widget):
         This method is called when the user presses the "Delete" button.
         It runs the `delete_item` action.
         """
-        await self.run_action("delete_item")
+        pass
 
     @on(Button.Pressed, "#sidebar .duplicate_button")
     async def duplicate(self) -> None:
@@ -161,7 +151,7 @@ class SelectionTemplate(Widget):
         This method is called when the user presses the "Duplicate"
         button. It runs the `duplicate_item` action.
         """
-        await self.run_action("duplicate_item")
+        pass
 
     @on(Button.Pressed, "#sidebar .sort_button")
     async def sort(self) -> None:
@@ -189,23 +179,7 @@ class SelectionTemplate(Widget):
             Whether to check for and delete associated aggregate models,
             by default False.
         """
-        if respond:
-            current_content_switcher_item_id = self.get_widget_by_id("content_switcher").current
-            current_collabsible_item_id = current_content_switcher_item_id + "_flabel"
-            name = self.feature_items[current_content_switcher_item_id].name
-
-            # Remove widgets
-            self.get_widget_by_id(current_content_switcher_item_id).remove()
-            self.get_widget_by_id(current_collabsible_item_id).remove()
-
-            # Remove from feature_items and cache
-            self.feature_items.pop(current_content_switcher_item_id)
-            ctx.cache.pop(name)
-            self.get_widget_by_id("content_switcher").current = None
-
-            # Additional step for action_delete_feature
-            if check_aggregate and name + "__aggregate_models_list" in ctx.cache:
-                ctx.cache.pop(name + "__aggregate_models_list")
+        pass
 
     def action_delete_item(self) -> None:
         """
@@ -216,13 +190,7 @@ class SelectionTemplate(Widget):
         confirmation before deleting the item. It unmount the item widget and
         delete its entry from dictionaries.
         """
-        current_content_switcher_item_id = self.get_widget_by_id("content_switcher").current
-        if current_content_switcher_item_id is not None:
-            name = self.feature_items[current_content_switcher_item_id].name
-            self.app.push_screen(
-                Confirm(f"Are you sure you want to delete {name}?", title="Delete item", classes="confirm_warning"),
-                lambda respond: self._delete_item(respond, check_aggregate=False),
-            )
+        pass
 
     @abstractmethod
     def action_add_item(self) -> None:
@@ -316,56 +284,7 @@ content_switcher_item_new_id:{content_switcher_item_new_id}, collapsible_item_ne
         It prompts the user for a new name for the duplicated item using a
         `NameInput` modal.
         """
-
-        async def duplicate_item(item_name_copy):
-            if item_name_copy and self.ITEM_KEY is not None:
-                # Deep copy existing data
-                ctx.cache[item_name_copy] = copy.deepcopy(ctx.cache[item_name])
-
-                # Update copied dictionary with new name
-                ctx.cache[item_name_copy][self.ITEM_KEY]["name"] = item_name_copy
-
-                # Initialize new_item_type
-                new_item_type = None
-
-                # Optional setting key update (only applies if SETTING_KEY is set)
-                if self.SETTING_KEY:
-                    ctx.cache[item_name_copy][self.ITEM_KEY]["setting"] = item_name_copy + "Setting"
-                    ctx.cache[item_name_copy][self.SETTING_KEY]["name"] = item_name_copy + "Setting"
-
-                    # Add new item, first case is when it is preproccesed image output, otherwise we check which feature type
-                    if ctx.cache[item_name_copy][self.SETTING_KEY].get("output_image") is True:
-                        new_item_type = "preprocessed_image"
-
-                # If new_item_type wasn't set above, use the type from ITEM_KEY
-                if new_item_type is None:
-                    new_item_type = ctx.cache[item_name_copy][self.ITEM_KEY]["type"]
-
-                new_item = (new_item_type, item_name_copy)
-                await self.add_new_item(new_item)
-
-        if self.ITEM_KEY is None:
-            raise NotImplementedError("Child class must define ITEM_KEY.")
-
-        occupied_feature_names = [self.feature_items[item].name for item in self.feature_items]
-
-        current_content_switcher_item_id = self.get_widget_by_id("content_switcher").current
-        if current_content_switcher_item_id is not None:
-            # deselect current item highlight, because the new copy will be highlighted automatically, avoiding double item
-            # highlighting
-            current_collabsible_item_id = current_content_switcher_item_id + "_flabel"
-            self.get_widget_by_id(current_collabsible_item_id).deselect()
-
-            item_name = self.feature_items[current_content_switcher_item_id].name
-            item_name_copy = item_name + "Copy"
-            logger.debug(
-                f"UI->SelectionTemplate.action_duplicate_item: item_name:{item_name}, item_name_copy:{item_name_copy}"
-            )
-
-            await self.app.push_screen(
-                NameInput(occupied_feature_names, default_value=item_name_copy),
-                duplicate_item,
-            )
+        pass
 
     @on(Button.Pressed, "#sidebar .rename_button")
     async def action_rename_item(self) -> None:
@@ -376,71 +295,11 @@ content_switcher_item_new_id:{content_switcher_item_new_id}, collapsible_item_ne
         data in the cache. It pushes a `NameInput` modal to the screen to
         get the new name from the user.
         """
-
-        def rename_item(new_item_name: str) -> None:
-            content_switcher_item_current_id = self.get_widget_by_id("content_switcher").current
-            if new_item_name:
-                collapsible_item_current_id = content_switcher_item_current_id + "_flabel"
-
-                old_item_name = self.feature_items[content_switcher_item_current_id].name
-                logger.debug(
-                    f"UI->SelectionTemplate.action_duplicate_item: \
-old_item_name:{old_item_name}, new_item_name:{new_item_name}"
-                )
-
-                # Update feature name
-                self.feature_items[content_switcher_item_current_id].name = new_item_name
-                self.get_widget_by_id(collapsible_item_current_id).update(new_item_name)
-
-                # Update the border title
-                self.get_widget_by_id("content_switcher").border_title = "{}: {}".format(
-                    self.ITEM_MAP[self.feature_items[content_switcher_item_current_id].type].replace("\n", " "),
-                    new_item_name,
-                )
-
-                # Move cache data
-                ctx.cache[new_item_name] = ctx.cache.pop(old_item_name)
-
-                # Update the model and setting keys in the cache
-                if self.ITEM_KEY is not None:
-                    ctx.cache[new_item_name][self.ITEM_KEY]["name"] = new_item_name
-                if self.SETTING_KEY and self.ITEM_KEY is not None:
-                    ctx.cache[new_item_name][self.ITEM_KEY]["setting"] = new_item_name + "Setting"
-                    ctx.cache[new_item_name][self.SETTING_KEY]["name"] = new_item_name + "Setting"
-
-        if self.ITEM_KEY is None:
-            raise NotImplementedError("Child class must define ITEM_KEY.")
-
-        occupied_feature_names = [self.feature_items[item].name for item in self.feature_items]
-        content_switcher_item_current_id = self.get_widget_by_id("content_switcher").current
-        if content_switcher_item_current_id is not None:
-            current_name = self.feature_items[content_switcher_item_current_id].name
-
-            await self.app.push_screen(
-                NameInput(occupied_feature_names, default_value=current_name),
-                rename_item,
-            )
+        pass
 
     def on_focus_label_selected(self, message: FocusLabel.Selected) -> None:
         """Changes border title color according to the feature type."""
-
-        # Update content switcher with the newly selected id.
-        # list ids have suffix _flabel, so to match the widget in the content switcher we need to remove this suffix
-        content_switcher_item_new_id = message.control.id[:-7]
-        current_feature = self.feature_items[content_switcher_item_new_id]
-
-        # Use currently selected switcher id to grab the focus label so that we can deselect it.
-        content_switcher_item_old_id = self.get_widget_by_id("content_switcher").current
-        # when we delete item, it can be also a None
-        if content_switcher_item_old_id is not None and content_switcher_item_old_id != content_switcher_item_new_id:
-            collapsible_item_old_id = content_switcher_item_old_id + "_flabel"
-            self.get_widget_by_id(collapsible_item_old_id).deselect()
-
-        self.get_widget_by_id("content_switcher").current = content_switcher_item_new_id
-        self.get_widget_by_id("content_switcher").border_title = "{}: {}".format(
-            self.ITEM_MAP[current_feature.type].replace("\n", " "), current_feature.name
-        )
-        self.get_widget_by_id("content_switcher").styles.border_title_color = "white"
+        pass
 
     def fill_cache_and_create_new_content_item(self, new_item: tuple[str, str] | list[tuple[str, str]]) -> Widget:
         """

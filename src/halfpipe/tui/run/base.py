@@ -176,63 +176,7 @@ class BatchOptionModal(DraggableModalScreen):
 
         self.widgets_to_mount = [*widgets_option_values, *widgets_option_bools, *widgets_option_lists, singularity_path_widget]
 
-    def on_mount(self):
-        self.content.mount(
-            *self.widgets_to_mount,
-            Horizontal(
-                Button("Ok", classes="ok_button"),
-                Button("Cancel", classes="cancel_button"),
-                id="button_panel",
-            ),
-        )
 
-    @on(Button.Pressed, ".ok_button")
-    async def ok(self, event):
-        all_valid = True
-        errors = []
-
-        # Validate IntOnlyInput and CSVTextArea
-        for selector in [".input_path_values", ".input_number_values", ".input_list_values"]:
-            for widget in self.query(selector):
-                result = await widget.validate()
-                if result is not True:
-                    all_valid = False
-                    if isinstance(result, str):
-                        errors.append(f"{widget.id}: {result}")
-
-        if not all_valid:
-            await self.app.push_screen(
-                Confirm(
-                    "\n".join(errors) or "Please correct the highlighted fields.",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Invalid values",
-                    classes="confirm_error",
-                )
-            )
-            return
-
-        # Build dictionary from all widgets
-        result_data = {}
-
-        # Get numeric + CSV fields
-        for widget in self.query(IntOnlyInput):
-            result_data[widget.id] = widget.value.strip()
-
-        for widget in self.query(CSVTextArea):
-            result_data[widget.id] = widget.text.strip()
-
-        # Get switches
-        for widget in self.query("TextSwitch"):
-            result_data[widget.id] = bool(widget.value)
-
-        # Get path
-        for widget in self.query(PathOnlyInput):
-            result_data[widget.id] = widget.value
-
-        # Dismiss with the result dictionary
-        self.dismiss(result_data)
 
     @on(Button.Pressed, ".cancel_button")
     def cancel_window(self):
@@ -242,7 +186,7 @@ class BatchOptionModal(DraggableModalScreen):
         This method is called when the "Cancel" button is pressed. It
         triggers the `_cancel_window` method to dismiss the modal.
         """
-        self._cancel_window()
+        pass
 
     def key_escape(self):
         """
@@ -251,7 +195,7 @@ class BatchOptionModal(DraggableModalScreen):
         This method is called when the escape key is pressed. It triggers
         the `_cancel_window` method to dismiss the modal.
         """
-        self._cancel_window()
+        pass
 
     def _confirm_window(self):
         """
@@ -262,21 +206,7 @@ class BatchOptionModal(DraggableModalScreen):
         `table_row_index` and dismisses the modal. Otherwise, it displays
         an error message.
         """
-        if any(i.value == "" for i in self.query(".input_values")):
-            self.app.push_screen(
-                Confirm(
-                    "Fill all values!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Missing values",
-                    classes="confirm_error",
-                )
-            )
-        else:
-            for i in self.query(".input_values"):
-                self.batch_options[i.name] = i.value
-            self.dismiss(self.batch_options)
+        pass
 
     def _cancel_window(self):
         """
@@ -354,29 +284,8 @@ class Run(Widget):
         ComposeResult
             The composed widgets.
         """
-        keep_panel = Horizontal(
-            Static("Choose which intermediate files to keep", id="keep_label"),
-            Select(
-                [("some (default)", "some"), ("all", "all"), ("none", "none")],
-                value="some",
-                allow_blank=False,
-                id="keep_selection",
-            ),
-            id="keep_selection_panel",
-        )
-        with ScrollableContainer():
-            yield Horizontal(
-                keep_panel,
-                Button("Generate HPC batch script", id="generate_batch_script_button"),
-                Button("Exit & Run locally", id="run_button"),
-                # Button("Exit UI", id="exit_button"),
-                id="run_button_panel",
-            )
-            yield Pretty("", id="this_output")
+        pass
 
-    @on(Select.Changed, "#keep_selection")
-    def on_keep_selection_changed(self, message: Message):
-        self.app.opts.keep = message.value
 
     @on(Button.Pressed, "#run_button")
     def on_run_button_pressed(self):
@@ -386,9 +295,7 @@ class Run(Widget):
         This method is called when the user presses the "Run" button. It
         exits the application and returns the working directory.
         """
-        self.app.opts.workdir = ctx.workdir
-        save_spec(ctx.spec, workdir=ctx.workdir)
-        self.app.exit()
+        pass
 
     # @on(Button.Pressed, "#save_button")
     async def on_save_button_pressed(self):
@@ -399,49 +306,8 @@ class Run(Widget):
         refreshes the context, saves the spec file to the working
         directory, and success modal is raised.
         """
+        pass
 
-        def save(value):
-            """
-            Saves the spec file to the working directory.
-
-            This method is called after the user confirms the save
-            operation. It saves the current pipeline configuration to a
-            spec file in the working directory.
-
-            Parameters
-            ----------
-            value : bool
-                The value returned by the confirmation dialog (not used).
-            """
-            save_spec(ctx.spec, workdir=ctx.workdir)
-
-        await self.refresh_context()
-        if ctx.workdir is None:
-            self.no_workdir_error()
-        else:
-            self.app.push_screen(
-                Confirm(
-                    "The spec file was saved to working directory!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="success",
-                    title="Spec file saved",
-                    classes="confirm_success",
-                ),
-                save,
-            )
-
-    def no_workdir_error(self):
-        self.app.push_screen(
-            Confirm(
-                "No working directory set!\nSet a working directory first!",
-                left_button_text=False,
-                right_button_text="OK",
-                right_button_variant="default",
-                title="No workdir",
-                classes="confirm_error",
-            )
-        )
 
     @on(Button.Pressed, "#generate_batch_script_button")
     def on_generate_batch_script_button_pressed(self):
@@ -451,52 +317,8 @@ class Run(Widget):
         This method is called when the user presses the "Refresh" button.
         It refreshes the context and updates the UI spec preview with the new data.
         """
+        pass
 
-        def generate_batch_script(batch_option_values):
-            if batch_option_values is not False:
-                os.environ["SINGULARITY_CONTAINER"] = batch_option_values["singularity_path_input"]
-                if batch_option_values is not None:
-                    if os.environ.get("SINGULARITY_CONTAINER") is None:
-                        self.app.push_screen(
-                            Confirm(
-                                "No singularity container path set!",
-                                title="Error",
-                                left_button_text=False,
-                                right_button_text="OK",
-                                id="batch_script_error",
-                                classes="confirm_error",
-                            )
-                        )
-                    else:
-                        try:
-                            batch_options = BatchOptions(batch_option_values)
-                            batch_options.workdir = ctx.workdir
-                            batch_options.spec_path = None
-                            batch_options.bids_database_dir = None
-                            batch_options.fs_root = self.app.opts.fs_root
-                            self._run_stage_workflow(batch_options)
-                        except BaseException as e:
-                            self.app.push_screen(
-                                Confirm(
-                                    f"Error:\n{e}",
-                                    title="Error",
-                                    left_button_text=False,
-                                    right_button_text="OK",
-                                    id="batch_script_error",
-                                    classes="confirm_error",
-                                )
-                            )
-
-        if ctx.workdir is None:
-            self.no_workdir_error()
-        else:
-            # first save spec file
-            save_spec(ctx.spec, workdir=ctx.workdir)
-            self.app.push_screen(BatchOptionModal(), generate_batch_script)
-
-    @work(exclusive=True, name="run_stage_workflow_worker")
-    async def _run_stage_workflow(self, batch_options):
-        run_stage_workflow(batch_options)
 
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         """
@@ -513,18 +335,7 @@ class Run(Widget):
             The event object containing information about the worker state
             change.
         """
-        if event.worker.name == "run_stage_workflow_worker":
-            if event.state == WorkerState.SUCCESS:
-                self.app.push_screen(
-                    Confirm(
-                        "The batch script was saved to working directory!",
-                        left_button_text=False,
-                        right_button_text="OK",
-                        right_button_variant="success",
-                        title="Spec file saved",
-                        classes="confirm_success",
-                    )
-                )
+        pass
 
     @on(Button.Pressed, "#exit_button")
     async def on_exit_button_pressed(self):
@@ -534,7 +345,7 @@ class Run(Widget):
         This method is called when the user presses the "Refresh" button.
         It refreshes the context and updates the UI spec preview with the new data.
         """
-        await quit_modal(self)
+        pass
 
     @on(Button.Pressed, "#refresh_button")
     async def on_refresh_button_pressed(self):
@@ -544,11 +355,8 @@ class Run(Widget):
         This method is called when the user presses the "Refresh" button.
         It refreshes the context and updates the UI spec preview with the new data.
         """
-        await self.refresh_context()
+        pass
 
-    @with_loading_modal
-    async def _dump_dict_to_contex_with_load_screen(self):
-        dump_dict_to_contex(self)
 
     async def refresh_context(self):
         """
@@ -557,32 +365,4 @@ class Run(Widget):
         This method dumps the cached data to the context, converts it to a
         JSON string, and updates the output widget with the JSON data.
         """
-        try:
-            await self._dump_dict_to_contex_with_load_screen()
-        except Exception as e:
-            self.app.push_screen(
-                Confirm(
-                    f"Invalid entry! Check fields.Your error:\n{e}",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Invalid entry",
-                    classes="confirm_error",
-                )
-            )
-        try:
-            self.json_data = SpecSchema().dumps(ctx.spec, many=False, indent=4, sort_keys=False)
-        except Exception as e:
-            self.app.push_screen(
-                Confirm(
-                    f"Invalid entry! Check fields.\nLikely you set somewhere an invalid value.\nYour error:\n{e}",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Invalid entry",
-                    classes="confirm_error",
-                )
-            )
-
-        if self.json_data is not None:
-            self.get_widget_by_id("this_output").update(json.loads(self.json_data))
+        pass

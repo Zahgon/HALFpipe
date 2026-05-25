@@ -50,25 +50,8 @@ class ReHo(FeatureTemplate):
         On the widget mount the default option for the bandpass filter type is set
         to "frequency_based".
         """
-        self.get_widget_by_id("bandpass_filter_type").default_option = "frequency_based"
+        pass
 
-        zscore_widget = Vertical(
-            Horizontal(
-                Static("Apply within-subject Z-score scaling", id="zscore_label"),
-                TextSwitch(value=self.feature_dict.setdefault("zscore"), id="zscore_switch"),
-                id="zscore_switch_panel",
-            ),
-            id="zscore_panel",
-            classes="components",
-        )
-
-        zscore_widget.border_title = "Z-score"
-        await self.mount(zscore_widget, after=self.get_widget_by_id("tasks_to_use_selection_panel"))
-
-    def compose(self) -> ComposeResult:
-        with ScrollableContainer(id="top_container_task_based"):
-            yield self.tasks_to_use_selection_panel
-            yield self.preprocessing_panel
 
     def _update_smoothing_setting(self, switch_value: bool, value: str | None) -> None:
         """
@@ -81,13 +64,5 @@ class ReHo(FeatureTemplate):
         value : str | None
             The current smoothing value from the input box.
         """
-        if switch_value:
-            # Switch is ON → set value
-            self.feature_dict["smoothing"]["fwhm"] = value if value != "" else None
-        else:
-            # Switch is OFF → clear value
-            self.feature_dict["smoothing"]["fwhm"] = None
+        pass
 
-    @on(TextSwitch.Changed, "#zscore_switch")
-    def on_zscore_switch_changed(self, message: Message):
-        self.feature_dict["zscore"] = message.value

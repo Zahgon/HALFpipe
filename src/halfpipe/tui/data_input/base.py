@@ -116,20 +116,7 @@ class DataInput(Widget):
         message_dict : dict[str, list[str]]
             A dictionary where keys are message categories and values are lists of messages.
         """
-        info_string = Text("")
-        for key in message_dict:
-            # if there is only one item, we do not separate items on new lines
-            if len(message_dict[key]) <= 1:
-                sep_char = ""
-                separ_line = "-" * (len(key) + len(message_dict[key][0]) + 3)
-            else:
-                sep_char = "\n"
-                separ_line = "-" * (max([len(s) for s in [key] + message_dict[key]]) + 3)
-            info_string += Text(key + ": " + sep_char, style="bold green") + Text(
-                " ".join(message_dict[key]) + separ_line + "\n", style="white"
-            )
-
-        self.callback_message = info_string
+        pass
 
     def compose(self) -> ComposeResult:
         """
@@ -144,64 +131,9 @@ class DataInput(Widget):
         ComposeResult
             The composed widgets for data input.
         """
-        # First we define widgets (panels) in order to be able later put titles on them
-        """Switch in between the BIDS and non BIDS widgets."""
-        self.build_bids_panels()
+        pass
 
-        instructions_panel = Container(
-            Static(
-                "If 'on' then just select the BIDS top directory. Otherwise you must select file patterns\
-for T1-weighted image, BOLD image and event files.",
-                id="description",
-            ),
-            Horizontal(
-                Static("Data in BIDS format", id="bids_format_switch", classes="label"),
-                TextSwitch(id="bids_non_bids_switch", value=True),
-                #        classes="components",
-            ),
-            id="instructions",
-            classes="components",
-        )
 
-        lesion_mask_panel = Container(
-            Static(
-                "Turn on to specify path patterns for lesion masks. Since currently fmriprep does not support \
-BIDS standard location in derivatives, you must specify the lesion masks also in case of the BIDS data format.",
-                id="description",
-            ),
-            Horizontal(
-                Static("Lesion masks", id="lesion_mask_label", classes="label"),
-                TextSwitch(id="lesion_mask_switch", value=False),
-            ),
-            id="lesion_mask_panel",
-            classes="components",
-        )
-
-        """
-        Sets up the initial state and titles for various panels after the widget is mounted.
-        """
-        instructions_panel.border_title = "Data format"
-        lesion_mask_panel.border_title = "Lesion masks"
-
-        # populate the generator
-        yield instructions_panel
-        yield self.bids_panel
-        yield self.bids_summary_panel
-        yield lesion_mask_panel
-        yield Horizontal(
-            Button("🡄 Back", id="previous_button", classes="navigation_buttons"),
-            Button("Next 🡆", id="next_button", classes="navigation_buttons"),
-            id="navigation_button_panel",
-            classes="navigation_button_panel",
-        )
-
-    @on(Button.Pressed, "#previous_button")
-    def on_previous_button_pressed(self, event: Button) -> None:
-        self.app.previous_tab()
-
-    @on(Button.Pressed, "#next_button")
-    def on_next_button_pressed(self, event: Button) -> None:
-        self.app.next_tab()
 
     # async def on_mount(self) -> None:
     #     await self._build_and_mount_bids_panels()
@@ -312,8 +244,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
 
         This method adds a new FileItem widget for specifying a T1 image file pattern.
         """
-        if "-read-only" not in event.control.classes:
-            await self.add_t1_image(load_object=None)
+        pass
 
     async def add_t1_image(self, load_object=None, message_dict=None, execute_pattern_class_on_mount=True) -> str:
         """
@@ -353,8 +284,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
 
         This method adds a new FileItem widget for specifying a T2 image file pattern.
         """
-        if "-read-only" not in event.control.classes:
-            await self.add_t2_image(load_object=None)
+        pass
 
     async def add_t2_image(self, load_object=None, message_dict=None, execute_pattern_class_on_mount=True) -> str:
         """
@@ -394,9 +324,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
 
         This method adds a new FileItem widget for specifying a BOLD image file pattern.
         """
-        # if self.data_load_sucess is False:
-        if "-read-only" not in event.control.classes:
-            await self.add_bold_image(load_object=None)
+        pass
         # else:
         #     self.forbid_data_change()
 
@@ -453,10 +381,6 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         self.field_map_file_pattern_counter += 1
         return "field_map_file_pattern_" + str(self.field_map_file_pattern_counter)
 
-    @on(Button.Pressed, "#add_field_map_button")
-    async def on_add_field_map_button_pressed(self, event) -> None:
-        if "-read-only" not in event.control.classes:
-            await self._select_and_add_field_maps()
 
     async def _select_and_add_field_maps(self):
         """
@@ -468,70 +392,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
          it may present additional modals to specify the number and type of
          magnitude and phase images.
         """
-
-        async def branch_field_maps(fmap_type):
-            """
-            Branches the field map setup based on the selected field map type.
-
-            This function determines the appropriate steps to take based on the
-            selected field map type. For Siemens and Philips field maps, it
-            presents additional modals to specify the type of magnitude and
-            phase images. For EPI field maps, it directly mounts the
-            FieldMapFilesPanel.
-
-            Parameters
-            ----------
-            fmap_type : str
-                The type of field map selected by the user.
-            """
-            if fmap_type == "siemens":
-                self.show_additional_buttons_in_field_map_panel()
-                await self.app.push_screen(
-                    DoubleSelectionModal(
-                        title="Magnitude & phase images",
-                        instructions=["Specify the type of the magnitude images", "Specify the type of the phase images"],
-                        options=[
-                            {
-                                "siemens_one_mag_image_file": "One magnitude image file",
-                                "siemens_two_mag_image_file": "Two magnitude image file",
-                            },
-                            {
-                                "siemens_one_phase_image_file": "One phase difference image",
-                                "siemens_two_phase_image_file": "Two phase images",
-                            },
-                        ],
-                    ),
-                    self._mount_field_item_group,
-                )
-            elif fmap_type == "philips":
-                self.show_additional_buttons_in_field_map_panel()
-                await self.app.push_screen(
-                    SelectionModal(
-                        title="Magnitude & phase images",
-                        instructions="Specify the type of the magnitude images",
-                        options={
-                            "philips_one_phase_image_file": "One phase difference image",
-                            "philips_two_phase_image_file": "Two phase images",
-                        },
-                    ),
-                    self._mount_field_item_group,
-                )
-            elif fmap_type == "epi":
-                await self.add_field_map(pattern_class=EPIStep)
-                self.field_map_file_pattern_counter += 1
-                self.refresh()
-
-        # actual start of the function, push modal to select the field map type and the mount appropriate FieldMapFilesPanel
-        options = field_map_group_labels
-        await self.app.push_screen(
-            SelectionModal(
-                title="Field map type specification",
-                instructions="Specify type of the field maps",
-                options=options,
-                id="field_maps_type_modal",
-            ),
-            branch_field_maps,
-        )
+        pass
 
     def show_additional_buttons_in_field_map_panel(self):
         """
@@ -540,9 +401,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         This method makes the "Associate" and "Info" buttons visible in the
         field map panel after a field map type has been selected.
         """
-        # show new buttons after adding the field map
-        self.get_widget_by_id("associate_button").styles.visibility = "visible"
-        self.get_widget_by_id("info_field_maps_button").styles.visibility = "visible"
+        pass
 
     async def _mount_field_item_group(self, field_map_user_choices: list | str):
         """
@@ -558,30 +417,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
             The user's choices for magnitude and phase image types.
             It can be a list of strings (for Siemens) or a single string (for Philips).
         """
-        # wrap to list, because from the single selection, the choices is just a string and not a list
-        field_map_user_choices = (
-            field_map_user_choices if isinstance(field_map_user_choices, list) else [field_map_user_choices]
-        )
-        # get string whether siemens or philips
-        field_map_type = field_map_user_choices[0].split("_")[0]
-        # find which classes are needed
-        step_classes: List[type[FilePatternStep]] = []
-
-        if any("one_mag_image_file" in s for s in field_map_user_choices):
-            step_classes += [Magnitude1Step]
-        elif any("two_mag_image_file" in s for s in field_map_user_choices):
-            step_classes += [Magnitude1Step, Magnitude2Step]
-        if any("one_phase_image_file" in s for s in field_map_user_choices):
-            step_classes += [PhaseDiffStep]
-        elif any("two_phase_image_file" in s for s in field_map_user_choices):
-            step_classes += [Phase1Step, Phase2Step]
-        if field_map_type == "philips":
-            step_classes += [FieldMapStep]
-            step_classes = step_classes[::-1]
-        if field_map_type is not None:
-            for step_class in step_classes:
-                await self.add_field_map(pattern_class=step_class)
-                self.refresh()
+        pass
 
     @work
     @on(Button.Pressed, "#confirm_non_bids_button")
@@ -596,57 +432,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         files has been performed. If there are issues, it displays warning
         messages to the user.
         """
-        if "-read-only" not in event.control.classes:
-            number_of_t1_files = []
-            number_of_bold_files = []
-            number_of_field_map_files = []
-            for widget in self.get_widget_by_id("t1_image_panel").walk_children(FileItem):
-                number_of_t1_files.append(len(widget.pattern_match_results["files"]))
-            for widget in self.get_widget_by_id("bold_image_panel").walk_children(FileItem):
-                number_of_bold_files.append(len(widget.pattern_match_results["files"]))
-            for widget in self.get_widget_by_id("field_map_panel").walk_children(FieldMapFilesPanel):
-                for sub_widget in widget.walk_children(FileItem):
-                    number_of_field_map_files.append(len(sub_widget.pattern_match_results["files"]))
-
-            warning_string = ""
-            if any(value == 0 for value in number_of_t1_files) or not number_of_t1_files:
-                warning_string += "No t1 files found! Check or add the t1 file pattern!\n"
-            if any(value == 0 for value in number_of_bold_files) or not number_of_bold_files:
-                warning_string += "No bold files found! Check or add the bold file pattern!\n"
-            # Fields map are not mandatory, so this does not go to the warning string.
-            # If the are field maps and the association was needed but was not done
-            if self.association_done is False and any(value != 0 for value in number_of_field_map_files):
-                await self.app.push_screen_wait(
-                    Confirm(
-                        "Check for field map association! Button 'Associate'",
-                        left_button_text=False,
-                        right_button_text="OK",
-                        #  left_button_variant=None,
-                        right_button_variant="default",
-                        title="Check association",
-                        id="association_modal",
-                        classes="confirm_warning",
-                    )
-                )
-            if warning_string != "":
-                await self.app.push_screen_wait(
-                    Confirm(
-                        warning_string,
-                        left_button_text=False,
-                        right_button_text="OK",
-                        right_button_variant="default",
-                        title="Missing files",
-                        id="missing_files_modal",
-                        classes="confirm_warning",
-                    )
-                )
-            else:
-                # refresh available images so that the feature tab can use them
-                ctx.refresh_available_images()
-                # make hidden tabs visible
-                self.data_input_sucess()
-                self.app.flags_to_show_tabs["from_input_data_tab"] = True
-                self.app.show_hidden_tabs()
+        pass
 
     @work(exclusive=True, name="acq_worker")
     @on(Button.Pressed, "#associate_button")
@@ -659,21 +445,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         `AcqToTaskMappingStep`. It also sets the `association_done` flag to
         True to indicate that the association process has been started.
         """
-        if len(self.get_widget_by_id("bold_image_panel").walk_children(FileItem)) != 0:
-            acq_to_task_mapping_step_instance = AcqToTaskMappingStep(app=self.app, callback=self.callback_func)
-            await acq_to_task_mapping_step_instance.run()
-            self.association_done = True
-        else:
-            await self.app.push_screen_wait(
-                Confirm(
-                    "Add first some bold files and then associate!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="No BOLD files",
-                    classes="confirm_error",
-                )
-            )
+        pass
 
     @on(Button.Pressed, "#info_field_maps_button")
     def _on_info_button_pressed(self):
@@ -684,7 +456,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         the field map files. The information is retrieved from theAcqToTaskMappingStep
         `callback_message` attribute.
         """
-        self.app.push_screen(SimpleMessageModal(self.callback_message, title="Meta information"))
+        pass
 
     @on(Switch.Changed, "#bids_non_bids_switch")
     async def on_bids_non_bids_switch_changed(self, message: Message):
@@ -700,8 +472,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         message : Message
             The message object containing information about the switch change.
         """
-        if "-read-only" not in message.control.classes and not self._suppress_bids_non_bids_switch_event:
-            await self.toggle_bids_non_bids_format(message.value)
+        pass
 
     @on(Switch.Changed, "#lesion_mask_switch")
     async def on_lesion_maps_switch_changed(self, message: Message):
@@ -717,8 +488,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         message : Message
             The message object containing information about the switch change.
         """
-        if not self._suppress_lesion_mask_switch_event:
-            await self.toggle_lesion_mask_panel(message.value)
+        pass
 
     async def toggle_lesion_mask_panel(self, value):
         lesion_mask_panel = self.get_widget_by_id("lesion_mask_panel")
@@ -740,7 +510,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
 
         This method adds a new FileItem widget for specifying a T1 image file pattern.
         """
-        await self.add_lesion_mask(load_object=None)
+        pass
 
     async def add_lesion_mask(self, load_object=None, message_dict=None, execute_pattern_class_on_mount=True) -> str:
         """
@@ -813,20 +583,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         message : Message
             The message object containing information about the file browser change.
         """
-        if self.data_load_sucess is False:
-            ctx.cache["bids"]["files"] = message.selected_path
-            ctx.put(BidsFileSchema().load({"datatype": "bids", "path": message.selected_path}))
-            ctx.refresh_available_images()
-
-            self.app.flags_to_show_tabs["from_input_data_tab"] = True
-            self.app.show_hidden_tabs()
-            self.update_summaries()
-            self.data_input_sucess()
-        else:
-            # we need to update this back
-            self.get_widget_by_id("data_input_file_browser").get_widget_by_id("path_input_box").update(
-                ctx.cache["bids"]["files"]
-            )
+        pass
             # self.forbid_data_change()
 
     def update_summaries(self):
@@ -863,32 +620,7 @@ of the string to be replaced by wildcards. You can also use type hints by starti
         format. It also provides instructions on how to proceed to the
         next steps in the pipeline.
         """
-
-        self.data_load_sucess = True
-        await self.app.push_screen_wait(
-            Confirm(
-                "Data files successfully loaded!",
-                left_button_text=False,
-                right_button_text="OK",
-                right_button_variant="default",
-                title="Data input success",
-                id="data_input_sucess",
-                classes="confirm_success",
-            )
-        )
-
-        if ctx.workdir is None:
-            await self.app.push_screen_wait(
-                Confirm(
-                    "Go back to Work dir tab and set the working directory!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Missing work directory",
-                    id="missing_workdir",
-                    classes="confirm_warning",
-                )
-            )
+        pass
 
     # def forbid_data_change(self):
     #     self.app.push_screen(
@@ -903,21 +635,6 @@ of the string to be replaced by wildcards. You can also use type hints by starti
     #         )
     #     )
 
-    @on(Switch.Changed, ".-read-only")
-    @on(Button.Pressed, ".-read-only")
-    def _read_mode_lock(self):
-        if self.app.flags_to_show_tabs["from_working_dir_tab"] and self.app.flags_to_show_tabs["from_input_data_tab"]:
-            self.app.push_screen(
-                Confirm(
-                    "Input entries cannot be changes now! Restart UI to change them.",
-                    title="Read-only",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    id="read_only_modal",
-                    classes="confirm_error",
-                )
-            )
 
     def read_only_mode(self, value):
         if value:

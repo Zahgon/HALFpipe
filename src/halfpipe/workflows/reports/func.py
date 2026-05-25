@@ -15,8 +15,6 @@ from ..configurables import configurables
 from ..memory import MemoryCalculator
 
 
-def _calc_scan_start(dummy_scans: int, repetition_time: float) -> float:
-    return dummy_scans * repetition_time
 
 
 def init_func_report_wf(workdir=None, name="func_report_wf", memcalc: MemoryCalculator | None = None):

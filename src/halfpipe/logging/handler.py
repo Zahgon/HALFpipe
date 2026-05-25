@@ -13,18 +13,3 @@ class QueueHandler(Handler):
         super(QueueHandler, self).__init__()
         self.queue = queue
 
-    def emit(self, record):
-        try:
-            long_msg = self.format(record)
-
-            short_record = copy(record)
-            short_record.exc_info = None
-            short_record.exc_text = None
-            short_record.stack_info = None
-
-            short_msg = self.format(short_record)
-
-            obj = LogMessage(short_msg=short_msg, long_msg=long_msg, levelno=record.levelno)
-            self.queue.put(obj)
-        except Exception:
-            self.handleError(record)

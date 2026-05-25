@@ -31,23 +31,3 @@ class AggregateResultdicts(IOBase):
         else:
             self.input_names = []
 
-    def _list_outputs(self):
-        outputs = self._outputs()
-        assert outputs is not None
-        outputs = outputs.get()
-
-        inputs = list()
-        for result in ravel([getattr(self.inputs, input_name) for input_name in self.input_names]):
-            if isinstance(result, dict):
-                inputs.append(result)
-            else:
-                raise ValueError(f'Cannot handle input "{result}"')
-
-        across = self.inputs.across
-
-        aggregated, non_aggregated = aggregate_results(inputs, across)
-
-        outputs["resultdicts"] = aggregated
-        outputs["non_aggregated_resultdicts"] = non_aggregated
-
-        return outputs

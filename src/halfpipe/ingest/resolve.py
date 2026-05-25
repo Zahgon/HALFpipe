@@ -106,9 +106,6 @@ class ResolvedSpec:
         for fileobj in self.spec.files:
             self.resolve(fileobj)
 
-    @property
-    def resolved_files(self) -> Generator[File, None, None]:
-        yield from self.fileobj_by_filepaths.values()
 
     def put(self, fileobj: File) -> list[File]:
         self.spec.put(fileobj)

@@ -46,14 +46,7 @@ def highlighting(text: Text, current_highlights: list[tuple[int, int, str]]) -> 
 
 def make_highlighter(highlights: list[tuple[int, int, str]]):
     """Return a function that applies given highlights."""
-
-    def _highlighter(text: Text) -> Text:
-        for s, e, style in sorted(highlights, key=lambda x: x[0]):
-            style = str(f"#000000 {style}")
-            text.stylize(style, s, e)
-        return text
-
-    return _highlighter
+    pass
 
 
 def find_tag_positions_by_color(input_string: str | Text, color_tag_dict: dict[str, str]) -> list[tuple[int, int, str]]:
@@ -125,23 +118,7 @@ def merge_overlapping_tuples(tuples: list[tuple[int, int, str]]) -> list[tuple[i
         A list of tuples representing the merged segments.
 
     """
-    # Sort the list of tuples by the start position
-    sorted_tuples = sorted(tuples, key=lambda x: x[0])
-
-    merged: list = []
-    for current in sorted_tuples:
-        if not merged:
-            merged.append(current)
-        else:
-            # Compare the current tuple with the last tuple in the merged list
-            last = merged[-1]
-            if current[0] <= last[1]:  # Check for overlap
-                # Merge the two tuples: take the min start, max end, and keep the color
-                merged[-1] = (min(last[0], current[0]), max(last[1], current[1]), last[2])
-            else:
-                merged.append(current)
-
-    return merged
+    pass
 
 
 def generate_strings(base_string: str, schema_entities_and_colors_dict: dict[str, str]) -> dict[str, Text] | None:
@@ -168,36 +145,7 @@ def generate_strings(base_string: str, schema_entities_and_colors_dict: dict[str
         representing the suggested patterns, or None if no suitable
         insertion point is found.
     """
-    schema_entities = schema_entities_and_colors_dict.keys()
-
-    # Split the string at '{' but keep the delimiter to handle it in the loop
-    parts = re.split(r"(\{)", base_string)
-    result_strings = {}
-    # skip_next = False  # Flag to skip next part if it is a known entity
-    #
-    # Rebuild the string with entities inserted appropriately
-    for i in range(len(parts)):
-        part = parts[i]
-        if part == "{":
-            # Check if the next part is a recognized entity
-            if i + 1 < len(parts) and any(parts[i + 1].startswith(entity + "}") for entity in schema_entities):
-                # If next part is a recognized entity, skip processing
-                continue
-            else:
-                # Otherwise, insert each entity in new strings
-                #   new_parts = parts[:i]  # Copy parts before the '{'
-                for entity in schema_entities:
-                    # Create a new string for each entity
-                    text = Text()
-                    text.append("".join(parts[:i]))  # Append the parts before '{'
-                    # Append the entity with styling
-                    text.append("{" + entity + "}", style="on " + color_hex_map[schema_entities_and_colors_dict[entity]])
-                    text.append("".join(parts[i + 1 :]))  # Append the parts after '{entity}'
-
-                    result_strings[entity] = text
-                break  # Stop processing after handling the first '{' that can be modified
-    # If no insertions were made (no suitable '{' was found), return the original string
-    return result_strings if result_strings else None
+    pass
 
 
 class SegmentHighlighting(Input):
@@ -294,27 +242,11 @@ class SegmentHighlighting(Input):
         # self.original_value = path
         super().__init__(name=name, placeholder=placeholder, value=path, highlighter=None, id=id, classes=classes)
 
-    def on_mount(self):
-        self.add_class("sel-default")
 
     def _end_selecting(self) -> None:
         """End selecting if it is currently active."""
-        if self._selecting:
-            if self.current_highlight_color != "default":
-                self.current_highlights.append(
-                    (self.selection.start, self.selection.end, "on " + color_hex_map[self.current_highlight_color])
-                )
-                self.current_highlights = merge_overlapping_tuples(self.current_highlights)
-                self.highlighter = make_highlighter(self.current_highlights)
+        pass
 
-            self._selecting = False
-            self.release_mouse()
-            self._restart_blink()
-
-    def change_highlight_color(self, color):
-        self.remove_class("sel-" + self.current_highlight_color)
-        self.add_class("sel-" + color)
-        self.current_highlight_color = color
 
     # def _end_selecting(self) -> None:
     #     """End selecting if it is currently active."""
@@ -362,10 +294,7 @@ class SegmentHighlighting(Input):
         """
         Called when the user pastes text into the input.
         """
-        self.current_highlights.clear()
-        self.current_highlights = find_tag_positions_by_color(self.value + event.text, self.colors_and_labels)
-        self.highlighter = make_highlighter(self.current_highlights)
-        self.refresh()
+        pass
 
     # @property
     # def _value(self) -> Text:
@@ -592,10 +521,7 @@ class SegmentHighlighting(Input):
         elements from the `previous_highlights` and `current_highlights`
         lists.
         """
-        # clear all highlights
-        # self.previous_highlights.clear()
-        self.current_highlights.clear()
-        self.refresh()
+        pass
 
     # def reset_all(self) -> None:
     #     """
@@ -618,21 +544,7 @@ class SegmentHighlighting(Input):
         the highlighted segments with their respective labels and updates
         the input value.
         """
-        start_offset = 0
-        end_offset = 0
-        highlights = copy.deepcopy(self.current_highlights)
-        self.reset_highlights()
-        for start, end, color in sorted(highlights, reverse=False, key=lambda x: x[0]):
-            label = self.colors_and_labels[hex_color_map[color.replace("on ", "")]]
-            # calculate by how much longer/shorter is the replacement string, this varies from label to label
-            extra = len(label) + 2 - (end - start)
-            self.value = self.value[: start + start_offset] + "{" + label + "}" + self.value[end + end_offset :]
-            end_offset += extra
-            self.current_highlights.append((start + start_offset, end + end_offset, color))
-            start_offset += extra
-        # self.current_highlights is set to [] when new highlight session starts, existing highlights are thus copied to
-        self.post_message(self.Submitted(self, self.value, None))
-        self.refresh()
+        pass
 
     #
     class Toggle(Message):
@@ -643,7 +555,7 @@ class SegmentHighlighting(Input):
         """
         Message sent when the input value changes.
         """
-        self.post_message(self.Toggle())
+        pass
 
 
 class InputSegmentHighlightingWithUpDownArrows(InputWithUpDownArrows):
@@ -680,21 +592,6 @@ class InputSegmentHighlightingWithUpDownArrows(InputWithUpDownArrows):
         super().__init__(placeholder=placeholder, id=id, classes=classes)
         self.colors_and_labels = colors_and_labels
 
-    def compose(self) -> ComposeResult:
-        # Need to change MyInput for SegmentHighlighting(Input) because both are subclass of Input
-        # SegmentHighlighting(Input) and has this _apend_highlight
-        yield HorizontalScroll(
-            SegmentHighlighting(
-                name="select_input",
-                placeholder=self.placeholder,
-                path=self.placeholder,
-                colors_and_labels=self.colors_and_labels,
-                id="input_prompt",
-            ),
-            id="input_prompt_horizontal_scroll",
-        )
-        yield MyStatic("▼", classes="arrow down-arrow")
-        yield MyStatic("▲", classes="arrow up-arrow")
 
 
 class InputWithColoredSuggestions(SelectOrInputPath):
@@ -769,9 +666,7 @@ class InputWithColoredSuggestions(SelectOrInputPath):
         This method is called to prepare the composition of the widget. It
         yields the input widget and the select overlay.
         """
-        if issubclass(self.input_class, InputSegmentHighlightingWithUpDownArrows):
-            yield self.input_class(self._value, colors_and_labels=self.colors_and_labels)
-        yield SelectOverlay()
+        pass
 
     @on(input_class.PromptChanged)
     def _select_current_with_input_prompt_changed(self, event: InputWithUpDownArrows.PromptChanged):
@@ -787,37 +682,7 @@ class InputWithColoredSuggestions(SelectOrInputPath):
             The event object containing information about the prompt
             change.
         """
-
-        def reverse_dict(original_dict):
-            reversed_dict = {}
-            for key, value in original_dict.items():
-                reversed_dict[value] = key
-            return reversed_dict
-
-        # reversing the dictionary makes the code cleaner here
-        self.labels_colors_dict = reverse_dict(self.colors_and_labels)
-        path = event.value
-        sugestion_strings = generate_strings(path, self.labels_colors_dict)
-        if sugestion_strings is not None:
-            # We do not want to show the whole path with the suggestions, but only the last part
-            # We find the index of the string break using these two lines.
-            # start with the first tag in the list
-            first_key = next(iter(sugestion_strings))
-            color_start = sugestion_strings[first_key].spans[0].start
-            last_path_break = [i for i, j in enumerate(sugestion_strings[first_key].plain[:color_start]) if j == "/"][-1] + 1
-            # Remember how many characters are missing due to the now showing the whole string. This is then used to offset
-            # the highlights correctly once the prompt is updated.
-            self.missing_offset = last_path_break
-            self.expanded = True
-            self._setup_variables_for_options(
-                [(sugestion_strings[f][last_path_break:], sugestion_strings[f].plain) for f in sugestion_strings.keys()]
-            )
-            self._setup_options_renderables()
-        else:
-            last_path_break = 0
-            self.missing_offset = 0
-            self.expanded = False
-        self.post_message(self.PromptChanged(path))
+        pass
 
     @on(SelectOverlay.UpdateSelection)
     def _update_selection(self, event: SelectOverlay.UpdateSelection) -> None:
@@ -833,23 +698,4 @@ class InputWithColoredSuggestions(SelectOrInputPath):
         event : SelectOverlay.UpdateSelection
             The event object containing information about the selection.
         """
-        event.stop()
-        value = self._options[event.option_index][1]
-        formatted_value = self._options[event.option_index][0]
-        # Here the highlights are offset by the number of characters cutout from the option selection due to the fact
-        # that we do not want to show the whole path with the suggestions, but only the last important part.
-        self.input_class.get_widget_by_id(self, id="input_prompt")._apend_highlight(
-            formatted_value.spans[0].start + self.missing_offset,
-            formatted_value.spans[0].end + self.missing_offset,
-            formatted_value.spans[0].style,
-        )
-        if value != self.value:
-            self.value = value
-            self.post_message(self.Changed(self, value))
-
-        async def update_focus() -> None:
-            """Update focus and reset overlay."""
-            self.focus()
-            self.expanded = False
-
-        self.call_after_refresh(update_focus)  # Prevents a little flicker
+        pass

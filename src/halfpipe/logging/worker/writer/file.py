@@ -20,9 +20,6 @@ class FileWriter(Writer, AdaptiveLock):
         self.filename: Path | None = None
         self.stream: IO[str] | None = None
 
-    @property
-    def delay(self) -> float:
-        return abs(gauss(0.0, 2.5))
 
     def check(self) -> bool:
         if self.filename is None or not isinstance(self.filename, Path):
@@ -30,22 +27,5 @@ class FileWriter(Writer, AdaptiveLock):
 
         return True
 
-    def acquire(self):
-        assert self.filename is not None
 
-        lock_file = str(self.filename.parent / f".{self.filename.name}.lock")  # hidden lock file
-        self.lock(lock_file)
 
-        self.stream = open(self.filename, mode="a", encoding="utf-8")
-
-    def emit(self, msg: str, levelno: int):
-        _ = levelno
-        msg = escape_codes_regex.sub("", msg)
-        if self.stream is not None:
-            self.stream.write(msg + self.terminator)
-
-    def release(self):
-        if self.stream is not None:
-            self.stream.close()
-
-        self.unlock()

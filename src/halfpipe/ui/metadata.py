@@ -74,8 +74,6 @@ class SliceTimingFileStep(Step):
 
         self.next_step_type = next_step_type
 
-    def _messagefun(self):
-        return self.message
 
     def setup(self, ctx):
         humankey = display_str(self.key).lower()

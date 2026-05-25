@@ -52,13 +52,4 @@ class InterceptOnlyModel(ModelTemplate):
         """
         super().__init__(this_user_selection_dict=this_user_selection_dict, id=id, classes=classes)
 
-    def compose(self) -> ComposeResult:
-        with ScrollableContainer(id="top_container_models"):
-            if self.tasks_to_use is not None:
-                yield self.tasks_to_use_selection_panel
-                yield self.aggregate_panel
-            yield self.cutoff_panel
 
-    @on(SelectionList.SelectedChanged, "#tasks_to_use_selection")
-    def _on_selection_list_changed(self):
-        self.model_dict["inputs"] = self.get_widget_by_id("tasks_to_use_selection").selected

@@ -100,7 +100,7 @@ class FilePanelTemplate(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.file_panel
+            pass
 
     @dataclass
     class Changed(Message):
@@ -110,7 +110,7 @@ class FilePanelTemplate(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.file_panel
+            pass
 
     @dataclass
     class FileTagsChanged(Message):
@@ -120,7 +120,7 @@ class FilePanelTemplate(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.file_tag_selection
+            pass
 
     def __init__(self, default_file_tags=None, file_tagging=False, id: str | None = None, classes: str | None = None) -> None:
         """
@@ -162,19 +162,7 @@ class FilePanelTemplate(Widget):
             A dictionary where keys are message categories and values are
             lists of messages.
         """
-        info_string = Text("")
-        for key in message_dict:
-            if len(message_dict[key]) <= 1:
-                sep_char = ""
-                separ_line = "-" * (len(key) + len(message_dict[key][0]) + 3)
-            else:
-                sep_char = "\n"
-                separ_line = "-" * (max([len(s) for s in [key] + message_dict[key]]) + 3)
-            info_string += Text(key + ": " + sep_char, style="bold green") + Text(
-                " ".join(message_dict[key]) + separ_line + "\n", style="white"
-            )
-
-        self.callback_message = info_string
+        pass
 
     def compose(self):
         """
@@ -188,9 +176,7 @@ class FilePanelTemplate(Widget):
         VerticalScroll
             The composed widgets.
         """
-        yield VerticalScroll(Button("Add", id="add_file_button"), id=self.id_string)
-        if self.file_tagging:
-            yield SelectionList[str](id="file_tag_selection", classes="components")
+        pass
 
     @on(Button.Pressed, "#add_file_button")
     async def _on_button_add_file_item_pressed(self):
@@ -201,7 +187,7 @@ class FilePanelTemplate(Widget):
         calls `add_file_item_pressed` to initiate the creation of a new
         file item.
         """
-        await self.add_file_item_pressed()
+        pass
 
     async def add_file_item_pressed(self):
         """
@@ -211,7 +197,7 @@ class FilePanelTemplate(Widget):
         It calls `create_file_item` to create and mount the new file item
         widget.
         """
-        await self.create_file_item(load_object=None)
+        pass
 
     async def create_file_item(self, load_object=None, message_dict=None):
         """
@@ -291,29 +277,7 @@ class FilePanelTemplate(Widget):
         It handles the case where a new feature is added and copies the
         file items from the first feature's panel to the new panel.
         """
-        # use first event file panel widget to make copies for the newly created one
-        unique_file_items = []
-        if self.app.walk_children(self.the_class) != []:
-            for file_panel_widget in self.app.walk_children(self.the_class):
-                # only use if it is not the first one!
-                if file_panel_widget != self:
-                    for file_item_widget in file_panel_widget.walk_children(FileItem):
-                        if file_item_widget.get_pattern_match_results not in unique_file_items:
-                            # mounting FileItems when a new Feature is added, this basically copies FileItems from the
-                            # very first Feature
-                            self.get_widget_by_id(self.id_string).mount(
-                                FileItem(
-                                    id=file_item_widget.id,
-                                    classes="file_patterns",
-                                    load_object=file_item_widget.get_pattern_match_results,
-                                    callback_message=file_item_widget.get_callback_message,
-                                    pattern_class=file_item_widget.get_pattern_class,
-                                    execute_pattern_class_on_mount=False,
-                                    edit_button=False,
-                                )
-                            )
-                            unique_file_items.append(file_item_widget.get_pattern_match_results)
-                            self.file_pattern_counter += 1
+        pass
 
     @on(FileItem.IsDeleted)
     async def _on_file_item_is_deleted(self, message):
@@ -331,24 +295,7 @@ class FilePanelTemplate(Widget):
             The message object containing information about the deleted
             file item.
         """
-        # self.post_message(self.FileItemIsDeleted(self, message.control.id, self.value))
-
-        file_pattern = message.value["file_pattern"]
-        file_tag = message.value["file_tag"]
-        files = message.value["files"]
-
-        all_file_tags_based_on_the_current_file_patterns = self._extract_file_tags(file_pattern, files, file_tag)
-
-        logger.debug(
-            f"UI->FilePanelTemplate->on_file_panel_file_item_is_deleted->tags to remove: \
-{all_file_tags_based_on_the_current_file_patterns}"
-        )
-        for w in self.app.walk_children(FilePanelTemplate):
-            # remove itself standardly later
-            # if w.id == message.control.id:
-            w.update_file_tag_selection(all_file_tags_based_on_the_current_file_patterns, remove=True)
-
-        await message.control.remove()
+        pass
 
     @classmethod
     def reset_all_counters(cls):
@@ -359,10 +306,7 @@ class FilePanelTemplate(Widget):
         its subclasses. It is used to ensure that file item IDs are
         unique across different instances of the panel.
         """
-        for subclass in cls.__subclasses__():
-            subclass._counter = 0
-            subclass.reset_all_counters()  # Reset for deeper subclasses if any
-        cls._counter = 0  # Reset the parent class counter
+        pass
 
     @on(FileItem.PathPatternChanged)
     def on_file_panel_changed(self, message: Message) -> None:
@@ -378,23 +322,7 @@ class FilePanelTemplate(Widget):
         message : Message
             The message object containing information about the change.
         """
-        if self.file_tagging:
-            file_pattern = message.value["file_pattern"]
-            file_tag = message.value["file_tag"]
-            files = message.value["files"]
-            logger.debug(f'f"UI->FilePanelTemplate->on_file_panel_changed->message.value:->{message.value}')
-
-            all_file_tags_based_on_the_current_file_patterns = self._extract_file_tags(file_pattern, files, file_tag)
-
-            # XOR (^) to avoid duplicate tags if the same file pattern is added twice
-            # file_tags = set(self.file_tags) ^ all_file_tags_based_on_the_current_file_patterns
-            file_tags = all_file_tags_based_on_the_current_file_patterns
-
-            logger.debug(
-                f"UI->FilePanelTemplate->on_file_panel_changed->all_file_tags_based_on_the_current_file_patterns:\
-    {all_file_tags_based_on_the_current_file_patterns}"
-            )
-            self.update_file_tag_selection(file_tags)
+        pass
 
     @work(exclusive=False, name="update_file_tag_selection")
     async def update_file_tag_selection(self, file_tags: set, remove=False) -> None:
@@ -410,33 +338,8 @@ class FilePanelTemplate(Widget):
         file_tags : set
             A set of tag values to update the selection list with.
         """
-        selection_widget = self.get_widget_by_id("file_tag_selection")
-        if not remove:
-            current_options = list(selection_widget._values)
-            for file_tag in sorted(file_tags):
-                if file_tag not in current_options:
-                    self.get_widget_by_id("file_tag_selection").add_option(
-                        Selection(file_tag, file_tag, initial_state=file_tag in self.default_file_tags)
-                    )
-            logger.debug(
-                f"UI->AtlasSeedDualRegBasedTemplate->update_file_tag_selection->file_tag_selection._values->\
-{self.get_widget_by_id('file_tag_selection')._values}"
-            )
-        else:
-            for file_tag in sorted(file_tags):
-                current_options = list(selection_widget._values)
+        pass
 
-                logger.debug(f"UI->update_file_tag_selection-> current_options:{current_options}")
-
-                if file_tag in current_options:
-                    try:
-                        self.get_widget_by_id("file_tag_selection")._remove_option(current_options.index(file_tag))
-                    except AttributeError:
-                        pass
-
-    @on(SelectionList.SelectedChanged)
-    def on_file_tag_selection_changed(self, message) -> None:
-        self.post_message(self.FileTagsChanged(self, message.control.selected))
 
     def _extract_file_tags(self, file_pattern, files, file_tag=None):
         """
@@ -457,32 +360,4 @@ class FilePanelTemplate(Widget):
         set[str | None]
             A set of extracted file tags.
         """
-        logger.debug(f"UI->_extract_file_tags->file_pattern: {file_pattern}")
-        logger.debug(f"UI->_extract_file_tags->files: {files}")
-        logger.debug(f"UI->_extract_file_tags->file_tag: {file_tag}")
-
-        tag_keys = {
-            # 'events': 'task',
-            "atlas": "atlas",
-            "seed": "seed",
-            "map": "map",
-        }
-        if isinstance(file_pattern, Text):
-            file_pattern = file_pattern.plain
-
-        if file_tag is not None:
-            # his means that the file pattern was manually tagged
-            tag_labels = {file_tag}
-            logger.debug(f"UI->_extract_file_tags->tag_labels (file_tag is not None): {tag_labels}")
-        else:
-            tag = tag_keys[self.filters["suffix"]]
-            logger.debug(f"UI->_extract_file_tags->suffix: {self.filters['suffix']}")
-            logger.debug(f"UI->_extract_file_tags->tag: {tag}")
-            tag_labels = {extract_name_part(file_pattern, file_path, tag=tag) for file_path in files}
-            logger.debug(f"UI->_extract_file_tags->tag_labels (file_tag is None): {tag_labels}")
-
-            if tag_labels == {None}:  # fallback to 'desc'
-                tag_labels = {extract_name_part(file_pattern, file_path, tag="desc") for file_path in files}
-                logger.debug(f"UI->_extract_file_tags->tag_labels (file_tag is None & desc): {tag_labels}")
-
-        return tag_labels
+        pass

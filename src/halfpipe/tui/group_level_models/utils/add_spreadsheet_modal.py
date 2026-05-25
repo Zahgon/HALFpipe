@@ -123,8 +123,7 @@ class AddSpreadsheetModal(DraggableModalScreen):
 
     async def on_mount(self) -> None:
         """Called when the window is mounted."""
-        await self.content.mount(*self.widgets_to_mount)
-        self.get_widget_by_id("spreadsheet_path_panel").border_title = "Spreadsheet path"
+        pass
 
     async def update_spreadsheet_list(self, spreadsheet_path: str | bool):
         """
@@ -140,31 +139,7 @@ class AddSpreadsheetModal(DraggableModalScreen):
             The path to the selected spreadsheet file, or False if no file
             was selected.
         """
-        if spreadsheet_path != "" and isinstance(spreadsheet_path, str):
-            self.get_widget_by_id("spreadsheet_path_label").update(spreadsheet_path)
-            self.spreadsheet_df = read_spreadsheet(spreadsheet_path)
-            self.filedict = {"datatype": "spreadsheet", "path": spreadsheet_path}
-
-            for i, col_label in enumerate(self.spreadsheet_df.columns):
-                type = "id" if i == 0 else "continuous"
-                self.metadata.append({"name": col_label, "type": type})
-
-            await self.mount(
-                Container(
-                    Static("Specify the column data types", id="column_assignement_label"),
-                    MultipleRadioSet(
-                        horizontal_label_set=["id", "continuous", "categorical"],
-                        vertical_label_set=list(self.spreadsheet_df.columns.values),
-                        default_value_column=1,
-                        unique_first_column=True,
-                        id="column_assignement",
-                    ),
-                    id="column_assignement_top_container",
-                    classes="components",
-                ),
-                after=self.get_widget_by_id("spreadsheet_path_panel"),
-            )
-            self.get_widget_by_id("column_assignement_top_container").border_title = "Column data types"
+        pass
 
     @on(MultipleRadioSet.Changed)
     def on_radio_set_changed(self, message):
@@ -181,30 +156,7 @@ class AddSpreadsheetModal(DraggableModalScreen):
             The message object containing information about the radio button
             selection change.
         """
-        # Extract the row number and column label
-        row_number = int(message.row.replace("row_radio_sets_", ""))
-        col_label = self.spreadsheet_df.columns[row_number]
-
-        # Get unique levels from the selected column
-        levels = list(self.spreadsheet_df.iloc[:, row_number].unique())
-        # ensure that all are strings
-        levels = [str(i) for i in levels]
-
-        # Filter out existing metadata for the column
-        self.metadata = [item for item in self.metadata if item.get("name") != col_label]
-
-        # Determine the metadata type based on the column
-        metadata_entry = {"name": col_label}
-        if message.column == 1:
-            metadata_entry["type"] = "id"
-        elif message.column == 2:
-            metadata_entry["type"] = "categorical"
-            metadata_entry["levels"] = levels
-        elif message.column == 3:
-            metadata_entry["type"] = "continuous"
-
-        # Append the updated metadata entry
-        self.metadata.append(metadata_entry)
+        pass
 
     @on(Button.Pressed, "#browse")
     async def _on_add_button_pressed(self):
@@ -215,10 +167,7 @@ class AddSpreadsheetModal(DraggableModalScreen):
         pushes the `FileBrowserModal` onto the screen to allow the user
         to select a spreadsheet file.
         """
-        await self.app.push_screen(
-            FileBrowserModal(title="Select spreadsheet", path_test_function=path_test_with_isfile_true),
-            self.update_spreadsheet_list,
-        )
+        pass
 
     @on(Button.Pressed, "#ok")
     def _on_ok_button_pressed(self):
@@ -229,20 +178,7 @@ class AddSpreadsheetModal(DraggableModalScreen):
         `SpreadsheetFileSchema` object, populates it with the selected file
         and metadata, and stores it in the application's cache.
         """
-        # create new file item
-        # dismiss some identification of it
-        fileobj = SpreadsheetFileSchema().load(self.filedict)
-        if not hasattr(fileobj, "metadata") or fileobj.metadata is None:
-            fileobj.metadata = dict()
-
-        if fileobj.metadata.get("variables") is None:
-            fileobj.metadata["variables"] = []
-
-        for vardict in self.metadata:
-            fileobj.metadata["variables"].append(VariableSchema().load(vardict))
-
-        ctx.cache[self.cache_name]["files"] = fileobj
-        self.dismiss((self.cache_name, self.filedict["path"]))
+        pass
 
     @on(Button.Pressed, "#cancel")
     def _on_cancel_button_pressed(self):
@@ -252,7 +188,7 @@ class AddSpreadsheetModal(DraggableModalScreen):
         This method is called when the "Cancel" button is pressed. It
         dismisses the modal with a value of False.
         """
-        self.dismiss(False)
+        pass
 
     def request_close(self):
         """
@@ -261,4 +197,4 @@ class AddSpreadsheetModal(DraggableModalScreen):
         This method is called when the user attempts to close the modal
         window. It dismisses the modal with a value of False.
         """
-        self.dismiss(False)
+        pass

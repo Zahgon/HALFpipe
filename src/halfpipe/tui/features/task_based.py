@@ -131,51 +131,7 @@ class TaskBased(FeatureTemplate):
         self.estimation_type_panel.border_title = "Estimation Type"
         self.on_init = True
 
-    def create_model_serial_correlations_panel(self):
-        model_serial_correlations_panel = Horizontal(
-            Static("Use auto-regressive model", classes="description_labels"),
-            TextSwitch(value=self.feature_dict["model_serial_correlations"], id="model_serial_correlations_switch"),
-            id="model_serial_correlations_panel",
-        )
-        return model_serial_correlations_panel
 
-    @on(SwitchWithSelect.SwitchChanged, "#estimation_type")
-    async def _on_estimation_type_switch_changed(self, message):
-        # When selection in the estimation_types_selection widget are toggled, all selected tasks in selection
-        # tasks_to_use_selection are deselected. This is to not make a mess when somebody would select first multiple_trial
-        # and select some conditions and then select a different estimation and then select different tasks and then go
-        # back to multiple_trial. The contrast table would then be confused, and it is safer to in such cases to start fresh.
-        # Also, the contrast table is valid only for multiple_trial, so for the other ones we need to remove the contrast table
-        # and also conditions key in the ctx.cache.
-        # feed the dictionary (ctx.cache)
-        # don't deselect when we are loading or duplicating
-        if not self.on_init:
-            self.get_widget_by_id("tasks_to_use_selection").deselect_all()
-        else:
-            self.on_init = False
-        if message.switch_value:
-            self.feature_dict.pop("conditions", None)
-            if widget_exists(self, "model_conditions_and_constrasts"):
-                await self.get_widget_by_id("model_conditions_and_constrasts").remove()
-            if not widget_exists(self, "model_serial_correlations_panel"):
-                await self.get_widget_by_id("estimation_types_selection_panel").mount(
-                    self.create_model_serial_correlations_panel()
-                )
-            self.get_widget_by_id("estimation_types_selection_panel").styles.height = 8
-            self.feature_dict["estimation"] = self.get_widget_by_id("estimation_type").selected
-        else:
-            self.feature_dict["estimation"] = "multiple_trial"
-            self.feature_dict.setdefault("conditions", [])
-
-            if not widget_exists(self, "model_conditions_and_constrasts"):
-                await self.mount(
-                    self.create_model_conditions_and_contrast_table(),
-                    after=self.get_widget_by_id("tasks_to_use_selection_panel"),
-                )
-            if widget_exists(self, "model_serial_correlations_panel"):
-                await self.get_widget_by_id("model_serial_correlations_panel").remove()
-                self.feature_dict["model_serial_correlations"] = True
-            self.get_widget_by_id("estimation_types_selection_panel").styles.height = 5
 
     @on(SwitchWithSelect.Changed, "#estimation_type")
     def _on_estimation_type_changed(self, message) -> None:
@@ -192,72 +148,11 @@ class TaskBased(FeatureTemplate):
         message : SwitchWithSelect.Changed
             The message object containing information about the change.
         """
-        estimation_type = message.value
-        if message.control.switch_value is True:
-            self.feature_dict["estimation"] = estimation_type
-        else:
-            self.feature_dict["estimation"] = "multiple_trial"
+        pass
 
-    def create_model_conditions_and_contrast_table(self):
-        # We need this to get correct condition selections in the widget, to achieve this, we do the same thing as when
-        # the images to use widget is updated but we accept only images that are True. The all_possible_conditions carries
-        # to information of the possible choices in the condition selection widget based on the currently selected images.
-        # for v in self.images_to_use["task"].keys():
-        # The function itself returns a contrast table widget. We do this to get a fresh default widget each time we call
-        # this function.
-        if not self.images_to_use:
-            raise ValueError("No images to use. 'images_to_use' cannot be empty.")
 
-        if self.feature_dict["contrasts"] is None:
-            self.feature_dict["contrasts"] = []
 
-        all_possible_conditions = []
-        for image, use in self.images_to_use["task"].items():
-            if use:
-                all_possible_conditions += extract_conditions(entity="task", values=[image])
 
-        return ModelConditionsAndContrasts(
-            all_possible_conditions,
-            feature_contrasts_dict=self.feature_dict["contrasts"],
-            feature_conditions_list=self.feature_dict["conditions"],
-            id="model_conditions_and_constrasts",
-            classes="components",
-        )
-
-    def compose(self) -> ComposeResult:
-        with ScrollableContainer(id="top_container_task_based"):
-            yield self.estimation_type_panel
-            if self.images_to_use is not None:
-                yield self.tasks_to_use_selection_panel
-                # mount contrast table only if estimation is set to multiple_trial, the condition with image_to_use
-                # is a safety
-                if self.images_to_use is not None and self.feature_dict["estimation"] == "multiple_trial":
-                    yield self.create_model_conditions_and_contrast_table()
-            yield self.preprocessing_panel
-
-    async def on_mount(self) -> None:
-        await self.mount_tasks()
-        if self.trial_estimation_default_switch_value:
-            self.estimation_type_panel.styles.height = 8
-            await self.get_widget_by_id("estimation_types_selection_panel").mount(
-                self.create_model_serial_correlations_panel()
-            )
-        else:
-            self.estimation_type_panel.styles.height = 5
-
-    async def mount_tasks(self):
-        if self.images_to_use is not None:
-            self.get_widget_by_id("tasks_to_use_selection_panel").border_title = "Select tasks"
-        if self.app.is_bids is not True:
-            await self.mount(
-                EventFilePanel(
-                    # default_file_tags=self.feature_dict[self.featurefield],
-                    id="top_file_panel",
-                    classes="components file_panel",
-                ),
-                after=self.get_widget_by_id("tasks_to_use_selection_panel"),
-            )
-            self.get_widget_by_id("top_file_panel").border_title = "Event files patterns"
 
     @on(SelectionList.SelectionToggled, "#tasks_to_use_selection")
     def _on_tasks_to_use_selection_changed(self, message):
@@ -273,18 +168,7 @@ class TaskBased(FeatureTemplate):
         message : SelectionList.SelectionToggled
             The message object containing information about the task selection change.
         """
-        if len(self.get_widget_by_id(message.control.id).selected) == 0:
-            self.app.push_screen(
-                Confirm(
-                    "You must selected at least one task!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="No images!",
-                    classes="confirm_error",
-                )
-            )
-            self.get_widget_by_id(message.control.id).select(message.selection)
+        pass
 
     @on(file_panel_class.Changed, "#top_file_panel")
     @on(SelectionList.SelectionToggled, "#tasks_to_use_selection")
@@ -305,31 +189,8 @@ class TaskBased(FeatureTemplate):
         message : SelectionList.SelectionToggled | EventFilePanel.Changed
             The message object containing information about the selection change.
         """
-        # this has to be split because when making a subclass, the decorator causes to ignored redefined function in the
-        # subclass
+        pass
 
-        # in the old UI if the user did not select any images, the UI did not let the user proceed further. Here we do
-        # more-less the same. If there are no choices user gets an error and all options are selected again.
-        if widget_exists(self, "model_conditions_and_constrasts"):
-            self.update_contrast_table()
-
-    def update_contrast_table(self) -> None:
-        if (
-            type(self).__name__ == "TaskBased"  # and message.control.id == "tasks_to_use_selection"
-        ):  # conditions are only in Task Based not in Preprocessing!
-            # try to update it here? this refresh the whole condition list every time that image is changed
-            all_possible_conditions = []
-            if self.images_to_use is not None:
-                for v in self.images_to_use["task"].keys():
-                    all_possible_conditions += extract_conditions(entity="task", values=[v])
-                self.get_widget_by_id("model_conditions_and_constrasts").update_all_possible_conditions(
-                    all_possible_conditions
-                )
-                logger.debug(
-                    f"UI->TaskBased._on_selection_list_changed_tasks_to_use_selection-> \
-    all_possible_conditions: {all_possible_conditions}"
-                )
-                self.update_conditions_table()
 
     def update_conditions_table(self):
         """
@@ -339,14 +200,7 @@ class TaskBased(FeatureTemplate):
         `ModelConditionsAndContrasts` widget to reflect the conditions
         associated with the currently selected images.
         """
-        condition_list = []
-        for value in self.get_widget_by_id("tasks_to_use_selection").selected:
-            logger.debug(f"UI->TaskBased.update_conditions_table Extracting conditions for task: {value}")
-            condition_list += extract_conditions(entity="task", values=[value])
-
-        logger.debug(f"UI->TaskBased.update_conditions_table-> New condition list: {condition_list}")
-        # force update of model_conditions_and_constrasts to reflect conditions given by the currently selected images
-        self.get_widget_by_id("model_conditions_and_constrasts").condition_values = condition_list
+        pass
 
     @on(TextSwitch.Changed, "#model_serial_correlations_switch")
     def _on_model_serial_correlations_switch_changed(self, message: Message) -> None:
@@ -363,4 +217,4 @@ class TaskBased(FeatureTemplate):
         message : SwitchWithInputBox.SwitchChanged
             The message object containing information about the change.
         """
-        self.feature_dict["model_serial_correlations"] = message.value
+        pass

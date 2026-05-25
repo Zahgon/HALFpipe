@@ -43,28 +43,6 @@ class FillNA(SimpleInterface):
     input_spec = FillNAInputSpec
     output_spec = TsvOutputSpec
 
-    def _run_interface(self, runtime):
-        in_file = self.inputs.in_tsv
-
-        if isdefined(in_file):
-            data_frame = read_spreadsheet(in_file)
-            for series_name, series in data_frame.items():
-                non_finite_count = np.count_nonzero(np.logical_not(np.isfinite(series.to_numpy())))
-                if non_finite_count > 0:
-                    logger.warning(
-                        f'Replacing {non_finite_count:d} non-finite values with zero in column "{series_name}" for "{in_file}"'
-                    )
-
-                series.replace([np.inf, -np.inf], 0.0, inplace=True)
-                series.fillna(0.0, inplace=True)
-
-            self._results["out_no_header"] = Path.cwd() / "fillna_no_header.tsv"
-            self._results["out_with_header"] = Path.cwd() / "fillna_with_header.tsv"
-            data_frame.to_csv(self._results["out_no_header"], index=False, header=False, **pandas_tocsv_kwargs)
-            data_frame.to_csv(self._results["out_with_header"], index=False, header=True, **pandas_tocsv_kwargs)
-
-            self._results["column_names"] = [str(series_name) for series_name in data_frame]
-        return runtime
 
 
 class MergeColumnsInputSpec(DynamicTraitedSpec):
@@ -86,65 +64,6 @@ class MergeColumns(IOBase):
         else:
             input_names = []
 
-    def _list_outputs(self) -> dict:
-        output_spec = self._outputs()
-        assert output_spec is not None
-        outputs = output_spec.get()
-
-        row_index = self.inputs.row_index
-        use_index = isdefined(row_index) and row_index is True
-
-        if self._numinputs < 1:
-            return outputs
-
-        data_frames: list[pd.DataFrame] = list()
-
-        for i in range(self._numinputs):
-            file_paths = getattr(self.inputs, "in%d" % (i + 1))
-            column_names = getattr(self.inputs, "column_names%d" % (i + 1))
-
-            if not isdefined(file_paths):
-                continue
-
-            if isinstance(file_paths, str):
-                file_paths = [file_paths]
-
-            file_paths = ravel(file_paths)
-
-            for file_path in file_paths:
-                data_frame = read_spreadsheet(file_path)
-
-                if data_frame.size == 0:
-                    continue
-
-                if isdefined(column_names):
-                    if not isinstance(column_names, (list, tuple)):
-                        column_names = [column_names]
-                    data_frame = data_frame.set_axis(column_names, axis="columns", copy=False)
-
-                data_frames.append(data_frame)
-
-        if len(data_frames) == 0:
-            data_frame = pd.DataFrame()
-        else:
-            data_frame = pd.concat(data_frames, axis=1)
-
-        if isinstance(row_index, list):
-            if len(row_index) == len(data_frame.index):
-                use_index = True
-                data_frame.index = self.inputs.row_index
-
-        out_with_header = Path.cwd() / "merge_with_header.tsv"
-        out_no_header = Path.cwd() / "merge_no_header.tsv"
-
-        data_frame.to_csv(out_with_header, index=use_index, header=True, **pandas_tocsv_kwargs)
-        data_frame.to_csv(out_no_header, index=False, header=False, **pandas_tocsv_kwargs)
-
-        outputs["out_with_header"] = out_with_header
-        outputs["out_no_header"] = out_no_header
-        outputs["column_names"] = list(map(str, data_frame.columns))
-
-        return outputs
 
 
 class SelectColumnsInputSpec(TraitedSpec):
@@ -160,31 +79,3 @@ class SelectColumns(SimpleInterface):
     input_spec = SelectColumnsInputSpec
     output_spec = TsvOutputSpec
 
-    def _run_interface(self, runtime):
-        inputpath = self.inputs.in_file
-        column_names = self.inputs.column_names
-
-        filter = re.compile("^(" + "|".join(column_names) + ")$")
-        dataframe = read_spreadsheet(inputpath)
-        dataframe = dataframe[
-            [column for column in dataframe.columns if filter.match(column) is not None and len(column_names) > 0]
-        ]
-        self._results["out_with_header"] = Path.cwd() / "select_with_header.tsv"
-        dataframe.to_csv(
-            self._results["out_with_header"],
-            sep="\t",
-            index=False,
-            na_rep="n/a",
-            header=True,
-        )
-        self._results["out_no_header"] = Path.cwd() / "select_no_header.tsv"
-        dataframe.to_csv(
-            self._results["out_no_header"],
-            sep="\t",
-            index=False,
-            na_rep="n/a",
-            header=False,
-        )
-        self._results["column_names"] = list(map(str, dataframe.columns))
-
-        return runtime

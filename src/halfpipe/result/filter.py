@@ -62,31 +62,11 @@ def make_group_filter(
 
     if action == "include":
 
-        def group_include_filter(d):
-            subject = d.get("tags").get("sub")
-            subject = normalize_subject(subject)
-
-            res = subject in selected_subjects
-
-            if res is False:
-                logger.info(f'Excluding subject "{subject}" {model_desc}because "{variable}" is not {levelsdesc}')
-
-            return res
 
         return group_include_filter
 
     elif action == "exclude":
 
-        def group_exclude_filter(d):
-            subject = d["tags"].get("sub")
-            subject = normalize_subject(subject)
-
-            res = subject not in selected_subjects
-
-            if res is False:
-                logger.info(f'Excluding subject "{subject}" {model_desc}because "{variable}" is {levelsdesc}')
-
-            return res
 
         return group_exclude_filter
 
@@ -106,16 +86,6 @@ def make_missing_filter(filter_dict: dict, data_frame: pd.DataFrame, model_desc:
 
     selected_subjects = frozenset(map(normalize_subject, is_finite.index[is_finite]))
 
-    def missing_filter(d):
-        subject = d["tags"].get("sub")
-        subject = normalize_subject(subject)
-
-        res = subject in selected_subjects
-
-        if res is False:
-            logger.warning(f'Excluding subject "{subject}" {model_desc}because "{variable}" is missing')
-
-        return res
 
     return missing_filter
 
@@ -132,33 +102,6 @@ def make_cutoff_filter(filter_dict: dict, model_desc: str) -> Callable[[dict], b
         logger.warning(f'The cutoff for "fd_perc" of {cutoff:f} was re-scaled to {cutoff * 100} percent')
         cutoff *= 100
 
-    def cutoff_filter(d: dict) -> bool:
-        tags = d["tags"]
-
-        if "task" not in tags:
-            logger.info(f"Skipping cutoff filter for structural ({format_tags(tags)})")
-            return True
-
-        vals = d.get("vals")
-        if vals is None:
-            logger.warning(f'Excluding ({format_tags(tags)}) {model_desc}because "{filter_field}" is missing. ')
-            return False
-        val = vals.get(filter_field, np.inf)
-
-        if isinstance(val, float):
-            x: float = val
-        else:
-            continuous = Continuous.load(val)
-            if continuous is not None:
-                x = continuous.mean
-            else:
-                raise ValueError(f'Cannot filter by "{val}"')
-
-        res = x <= cutoff
-        if res is False:
-            logger.info(f'Excluding ({format_tags(tags)}) {model_desc}because "{filter_field}" is larger than {cutoff:f}')
-
-        return res
 
     return cutoff_filter
 

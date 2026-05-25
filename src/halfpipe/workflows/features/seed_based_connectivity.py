@@ -24,35 +24,6 @@ from ..configurables import configurables
 from ..memory import MemoryCalculator
 
 
-def _contrasts(design_file=None):
-    import csv
-    from pathlib import Path
-
-    import numpy as np
-    import pandas as pd
-
-    from halfpipe.ingest.spreadsheet import read_spreadsheet
-
-    design_df = read_spreadsheet(design_file)
-    _, n = design_df.shape
-
-    contrast_mat = np.zeros((1, n))
-    contrast_mat[0, 0] = 1
-
-    contrast_df = pd.DataFrame(contrast_mat, index=[design_df.columns[0]], columns=design_df.columns)
-
-    out_with_header = Path.cwd() / "merge_with_header.tsv"
-    contrast_df.to_csv(
-        out_with_header,
-        sep="\t",
-        index=True,
-        na_rep="n/a",
-        header=True,
-        quoting=csv.QUOTE_NONNUMERIC,
-    )
-    out_no_header = Path.cwd() / "merge_no_header.tsv"
-    contrast_df.to_csv(out_no_header, sep="\t", index=False, na_rep="n/a", header=False)
-    return str(out_with_header), str(out_no_header)
 
 
 def init_seed_based_connectivity_wf(

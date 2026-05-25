@@ -22,19 +22,12 @@ from ..step import Step
 from ..utils import entity_colors, forbidden_chars
 
 
-def feature_namefun(ctx):
-    featurename = underscore(ctx.spec.features[-1].name)
-    name = format_like_bids(f"{featurename} setting")
-    ctx.spec.features[-1].setting = name
-    return name
 
 
 def get_setting_init_steps(next_step_type, settingdict: dict | None = None, namefun=feature_namefun, noun="setting"):
     settingdict = {} if settingdict is None else settingdict
 
     class SettingFilterStep(Step):
-        def _format_tag(self, tag):
-            return f'"{tag}"'
 
         def setup(self, ctx):
             self.is_first_run = True

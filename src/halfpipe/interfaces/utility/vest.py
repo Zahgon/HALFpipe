@@ -27,21 +27,3 @@ class Unvest(SimpleInterface):
     input_spec = UnvestInputSpec
     output_spec = UnvestOutputSpec
 
-    def _run_interface(self, runtime):
-        in_file = self.inputs.in_vest
-
-        if isdefined(in_file):
-            matrix = np.loadtxt(in_file, comments="/", ndmin=2)
-            dataframe = pd.DataFrame(matrix)
-
-            stem, _ = split_ext(in_file)
-            self._results["out_no_header"] = Path.cwd() / f"{stem}_no_header.tsv"
-            dataframe.to_csv(
-                self._results["out_no_header"],
-                sep="\t",
-                index=False,
-                na_rep="n/a",
-                header=False,
-            )
-
-        return runtime

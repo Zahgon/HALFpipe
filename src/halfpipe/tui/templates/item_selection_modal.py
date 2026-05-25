@@ -117,7 +117,7 @@ class ItemSelectionModal(DraggableModalScreen):
         the UI components, including the option list and the "Cancel"
         button.
         """
-        self.content.mount(self.option_list, Horizontal(Button("Cancel", id="cancel_button"), id="botton_container"))
+        pass
 
     @on(OptionList.OptionSelected, "#options")
     def on_option_list_option_selected(self, message: OptionList.OptionSelected) -> None:
@@ -134,28 +134,7 @@ class ItemSelectionModal(DraggableModalScreen):
             The message object containing information about the selected
             option.
         """
-
-        def get_item_name(feature_name: str | None) -> None:
-            """
-            Callback function to handle the name input from NameInput.
-
-            This function is called when the `NameInput` modal is
-            dismissed. It dismisses the `ItemSelectionModal` with the
-            selected item type and the provided name.
-
-            Parameters
-            ----------
-            feature_name : str | None
-                The name provided by the user, or None if the user
-                canceled the name input.
-            """
-            if feature_name:
-                self.dismiss((message.option.id, feature_name))
-
-        self.app.push_screen(
-            NameInput(self.occupied_feature_names),
-            get_item_name,
-        )
+        pass
 
     @on(Button.Pressed, "#cancel_button")
     def key_escape(self):
@@ -166,4 +145,4 @@ class ItemSelectionModal(DraggableModalScreen):
         "Cancel" button. It dismisses the modal without making a
         selection.
         """
-        self.dismiss(False)
+        pass

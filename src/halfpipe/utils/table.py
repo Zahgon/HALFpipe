@@ -95,33 +95,6 @@ class SynchronizedTable:
             pass
         self.dictlist = None
 
-    def to_table(self) -> None:
-        assert self.dictlist is not None
-
-        dictlist = [{str(k): str(v) for k, v in indict.items()} for indict in self.dictlist]
-        data_frame = pd.DataFrame.from_records(dictlist)
-        assert isinstance(data_frame, pd.DataFrame)
-
-        data_frame.replace({np.nan: ""}, inplace=True)
-
-        columns = list(map(str, data_frame.columns))
-        columns_in_order = [entity for entity in reversed(entities) if entity in columns]
-        columns_in_order.extend(sorted([column for column in columns if column not in entities]))
-
-        data_frame = data_frame[columns_in_order]
-        assert isinstance(data_frame, pd.DataFrame)
-
-        table_str = tabulate(
-            data_frame,  # type: ignore
-            headers="keys",
-            showindex=False,
-            disable_numparse=True,
-        )
-
-        table_filename = self.filename.parent / f"{self.filename.stem}.txt"
-        with open(str(table_filename), "w") as fp:
-            fp.write(table_str)
-            fp.write("\n")
 
     def put(self, indict: dict[str, Any]) -> None:
         assert self.dictlist is not None

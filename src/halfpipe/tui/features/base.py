@@ -91,17 +91,11 @@ class FeatureSelection(SelectionTemplate):
     ITEM_KEY = ITEM_KEY
     SETTING_KEY = SETTING_KEY
 
-    def on_mount(self) -> None:
-        self.get_widget_by_id("content_switcher").border_title = "First-level features"
 
     def action_add_item(self) -> None:
         """Pops out the feature type selection windows and then uses add_new_item function to mount a new feature
         widget."""
-        occupied_feature_names = [self.feature_items[item].name for item in self.feature_items]
-        self.app.push_screen(
-            FeatureSelectionModal(occupied_feature_names),
-            self.add_new_item,
-        )
+        pass
 
     def fill_cache_and_create_new_content_item(self, new_item):
         item_type, item_name = new_item

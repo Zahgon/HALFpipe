@@ -143,7 +143,7 @@ class FilePatternSummaryStep:
         str
             The summary message.
         """
-        return self.message
+        pass
 
     @property
     def get_summary(self) -> Dict[str, Union[str, List[str], Dict[str, int]]]:
@@ -156,7 +156,7 @@ class FilePatternSummaryStep:
             A dictionary containing the summary message, the file paths,
             and the tag distribution.
         """
-        return {"message": self.message, "files": self.filepaths, "n_by_tag": self.n_by_tag}
+        pass
 
 
 class AnatSummaryStep(FilePatternSummaryStep):

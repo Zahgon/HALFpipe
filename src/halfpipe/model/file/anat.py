@@ -36,7 +36,3 @@ class AnatFileSchema(OneOfSchema):
     type_field_remove = False
     type_schemas = {"T1w": T1wFileSchema, "T2w": T2wFileSchema, "mask": T1wMaskFileSchema, "roi": T1wMaskFileSchema}
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, File):
-            return obj.suffix
-        raise Exception("Cannot determine obj type for AnatFileSchema")

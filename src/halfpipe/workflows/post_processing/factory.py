@@ -233,8 +233,6 @@ class FmriprepAdapterFactory(LookupFactory):
         space = setting_tuple.value
         return init_fmriprep_adapter_wf(space=space, memcalc=lookup_tuple.memcalc)
 
-    def _tpl(self, setting: dict[str, Any]) -> Hashable:
-        return setting.get("space")
 
 
 class SmoothingFactory(LookupFactory):
@@ -255,15 +253,6 @@ class SmoothingFactory(LookupFactory):
 
         return init_smoothing_wf(fwhm=fwhm, memcalc=lookup_tuple.memcalc, suffix=suffix)
 
-    def _tpl(self, setting) -> Hashable:
-        smoothing_dict = setting.get("smoothing")
-
-        smoothing = None
-        if isinstance(smoothing_dict, dict) and smoothing_dict.get("fwhm") is not None:
-            fwhm = smoothing_dict["fwhm"]
-            smoothing = f"{fwhm:f}"
-
-        return smoothing
 
 
 class GrandMeanScalingFactory(LookupFactory):
@@ -284,15 +273,6 @@ class GrandMeanScalingFactory(LookupFactory):
 
         return init_grand_mean_scaling_wf(mean=mean, memcalc=lookup_tuple.memcalc, suffix=suffix)
 
-    def _tpl(self, setting) -> Hashable:
-        grand_mean_scaling_dict = setting.get("grand_mean_scaling")
-
-        grand_mean_scaling = None
-        if isinstance(grand_mean_scaling_dict, dict) and grand_mean_scaling_dict.get("mean") is not None:
-            mean = grand_mean_scaling_dict["mean"]
-            grand_mean_scaling = f"{mean:f}"
-
-        return grand_mean_scaling
 
 
 class ICAAROMARegressionFactory(LookupFactory):
@@ -318,9 +298,6 @@ class ICAAROMARegressionFactory(LookupFactory):
             suffix=suffix,
         )
 
-    def _tpl(self, setting) -> Hashable:
-        ica_aroma = setting.get("ica_aroma") is True
-        return ica_aroma
 
     def _connect_inputs(self, hierarchy, inputnode, source_file, setting_name, lookup_tuple: LookupTuple):
         super(ICAAROMARegressionFactory, self)._connect_inputs(hierarchy, inputnode, source_file, setting_name, lookup_tuple)
@@ -351,27 +328,6 @@ class BandpassFilterFactory(LookupFactory):
             suffix=suffix,  # type: ignore
         )
 
-    def _tpl(self, setting) -> Hashable:
-        bandpass_filter_dict = setting.get("bandpass_filter")
-
-        bandpass_filter = None
-        if isinstance(bandpass_filter_dict, dict) and bandpass_filter_dict.get("type") is not None:
-            if bandpass_filter_dict.get("type") == "gaussian":
-                if bandpass_filter_dict.get("lp_width") is not None or bandpass_filter_dict.get("hp_width") is not None:
-                    bandpass_filter = (
-                        "gaussian",
-                        bandpass_filter_dict.get("lp_width"),
-                        bandpass_filter_dict.get("hp_width"),
-                    )
-            elif bandpass_filter_dict.get("type") == "frequency_based":
-                if bandpass_filter_dict.get("low") is not None or bandpass_filter_dict.get("high") is not None:
-                    bandpass_filter = (
-                        "frequency_based",
-                        bandpass_filter_dict.get("low"),
-                        bandpass_filter_dict.get("high"),
-                    )
-
-        return bandpass_filter
 
 
 class SettingAdapterFactory(LookupFactory):
@@ -381,8 +337,6 @@ class SettingAdapterFactory(LookupFactory):
 
         return init_setting_adapter_wf(suffix=suffix)
 
-    def _tpl(self, setting) -> Hashable:
-        return None
 
 
 class ConfoundsSelectFactory(LookupFactory):
@@ -402,14 +356,6 @@ class ConfoundsSelectFactory(LookupFactory):
         assert isinstance(confound_names, (list, tuple))
         return init_confounds_select_wf(confound_names=list(confound_names), suffix=suffix)
 
-    def _tpl(self, setting) -> Hashable:
-        confounds_removal = setting.get("confounds_removal")
-
-        confound_names = None
-        if confounds_removal is not None and len(confounds_removal) > 0:
-            confound_names = tuple(sorted(confounds_removal))
-
-        return confound_names
 
 
 class ConfoundsRegressionFactory(LookupFactory):
@@ -427,14 +373,6 @@ class ConfoundsRegressionFactory(LookupFactory):
 
         return init_confounds_regression_wf(memcalc=lookup_tuple.memcalc, suffix=suffix)
 
-    def _tpl(self, setting) -> Hashable:
-        confounds_removal = setting.get("confounds_removal")
-
-        has_confounds = False
-        if confounds_removal is not None and len(confounds_removal) > 0:
-            has_confounds = True
-
-        return has_confounds
 
 
 class PostProcessingFactory(Factory):

@@ -10,12 +10,6 @@ from ...utils.ops import ravel
 from .func import FuncTagsSchema
 
 
-def validate_tags(v):
-    if isinstance(v, str):
-        return
-    if isinstance(v, (tuple, list)) and all(isinstance(x, str) for x in ravel(v)):
-        return
-    raise ValidationError("Need to be either a string or a (nested) list of strings")
 
 
 first_level_entities = [

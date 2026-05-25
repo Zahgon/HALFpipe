@@ -129,7 +129,7 @@ class FileItem(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.file_item
+            pass
 
     @dataclass
     class SuccessChanged(Message):
@@ -150,7 +150,7 @@ class FileItem(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.file_item
+            pass
 
     @dataclass
     class PathPatternChanged(Message):
@@ -171,7 +171,7 @@ class FileItem(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.file_item
+            pass
 
     def __init__(
         self,
@@ -299,7 +299,7 @@ class FileItem(Widget):
             A dictionary where keys are message categories and values are
             lists of messages.
         """
-        self.callback_message = self.prettify_message_dict(message_dict)
+        pass
 
     def compose(self):
         """
@@ -309,16 +309,7 @@ class FileItem(Widget):
         including a static label for the file pattern, and buttons for
         info, edit, show, and delete (optional).
         """
-        yield HorizontalScroll(
-            Static("Edit to enter the file pattern", id="static_file_pattern"), id="static_file_pattern_panel"
-        )
-        with Horizontal(id="icon_buttons_container"):
-            yield Button(" ℹ", id="info_button", classes="icon_buttons")
-            if self.edit_button:
-                yield Button("🖌", id="edit_button", classes="icon_buttons")
-            yield Button("👁", id="show_button", classes="icon_buttons")
-            if self.delete_button:
-                yield Button("❌", id="delete_button", classes="icon_buttons")
+        pass
 
     def on_mount(self) -> None:
         """
@@ -331,43 +322,7 @@ class FileItem(Widget):
         not None, it loads the file pattern from the provided object (
         this is used when for example we load from a spec file).
         """
-        if self.load_object is None:
-            if self.edit_button:
-                self.get_widget_by_id("edit_button").tooltip = "Edit"
-            if self.delete_button:
-                self.get_widget_by_id("delete_button").tooltip = "Delete"
-            if self.pattern_class is not None:
-                self.app.push_screen(
-                    PathPatternBuilder(
-                        path="/",
-                        title=self.title,
-                        highlight_colors=self.pattern_class.get_entity_colors_list,
-                        labels=self.pattern_class.get_entities,
-                        pattern_class=self.pattern_class,
-                    ),
-                    self._update_file_pattern,
-                )
-        else:
-            if isinstance(self.load_object, dict):
-                self._update_file_pattern(self.load_object)
-            else:
-                pattern_load = {}
-                pattern_load["file_pattern"] = self.load_object.path
-                if self.load_object.tags == {}:
-                    pattern_load["file_tag"] = None
-                else:
-                    tag_key = {"atlas": "atlas", "seed": "seed", "map": "map"}.get(self.load_object.suffix)
-
-                    pattern_load["file_tag"] = self.load_object.tags.get("desc", self.load_object.tags.get(tag_key))
-
-                message, filepaths = resolve_path_wildcards(self.load_object.path)
-                pattern_load["message"] = message
-                pattern_load["files"] = filepaths
-                self._update_file_pattern(pattern_load)
-        if (self.pattern_class and self.pattern_class.callback) or self.callback_message:
-            self.get_widget_by_id("info_button").styles.visibility = "visible"
-        else:
-            self.get_widget_by_id("info_button").remove()
+        pass
 
     @on(Button.Pressed, "#edit_button")
     def _on_edit_button_pressed(self, event):
@@ -378,19 +333,7 @@ class FileItem(Widget):
         opens the `PathPatternBuilder` modal to allow the user to edit
         the file pattern.
         """
-        if "-read-only" not in event.control.classes:
-            self.from_edit = True
-            if self.pattern_class is not None:
-                self.app.push_screen(
-                    PathPatternBuilder(
-                        path=self.pattern_match_results["file_pattern"],
-                        title=self.title,
-                        highlight_colors=self.pattern_class.get_entity_colors_list,
-                        labels=self.pattern_class.get_entities,
-                        pattern_class=self.pattern_class,
-                    ),
-                    self._update_file_pattern,
-                )
+        pass
 
     @property
     def get_pattern_match_results(self) -> dict[str, Any]:
@@ -402,7 +345,7 @@ class FileItem(Widget):
         dict[str, Any]
             A dictionary containing the results of the pattern match.
         """
-        return self.pattern_match_results
+        pass
 
     @property
     def get_callback_message(self) -> Sequence[str] | None:
@@ -414,11 +357,8 @@ class FileItem(Widget):
         Sequence[str] | None
             The callback message, or None if no message is set.
         """
-        return self.callback_message
+        pass
 
-    @property
-    def get_pattern_class(self):
-        return self.pattern_class
 
     # runs after the PathPatternBuilder modal
     @work(exclusive=True, name="update_worker")
@@ -437,51 +377,7 @@ class FileItem(Widget):
             The results from the `PathPatternBuilder` modal, or False if
             the modal was canceled.
         """
-        if pattern_match_results is not False:
-            self.pattern_match_results = pattern_match_results
-            # Update the static label using the file pattern.
-
-            if self.pattern_class is not None:
-                colors_and_labels = dict(
-                    zip(self.pattern_class.get_entity_colors_list, self.pattern_class.get_entities, strict=False)
-                )
-                current_highlights = find_tag_positions_by_color(pattern_match_results["file_pattern"], colors_and_labels)
-            else:
-                current_highlights = []
-
-            # ensure that this is a string before wrapping it as rich Text
-            pattern_match_results["file_pattern"] = (
-                pattern_match_results["file_pattern"].plain
-                if isinstance(pattern_match_results["file_pattern"], Text)
-                else pattern_match_results["file_pattern"]
-            )
-            self.get_widget_by_id("static_file_pattern").update(
-                highlighting(Text(pattern_match_results["file_pattern"]), current_highlights)
-            )
-            # Tooltip telling us how many files were  found.
-            self.get_widget_by_id("show_button").tooltip = pattern_match_results["message"]
-            # If 0 files were found, the border is red, otherwise green.
-            if len(pattern_match_results["files"]) > 0:
-                self.styles.border = ("solid", "green")
-                self.success_value = True
-                if pattern_match_results["file_tag"] is not None:
-                    self.border_title = f"File tag: {pattern_match_results['file_tag']}"
-            else:
-                self.styles.border = ("solid", "red")
-                self.success_value = False
-            if len(pattern_match_results["files"]) > 0:
-                if self.pattern_class is not None and self.execute_pattern_class_on_mount:
-                    await self.execute_class()
-
-            if self.from_edit:
-                # await self.update_all_duplicates()
-                pass
-
-        else:
-            # delete it self if cancelled and was not existing before
-            if self.pattern_match_results["file_pattern"] == "":
-                self.remove_all_duplicates()
-                self.remove()
+        pass
 
     async def execute_class(self) -> None:
         """
@@ -490,16 +386,7 @@ class FileItem(Widget):
         This method executes additional actions defined in the pattern
         class, such as pushing the file path to the context object.
         """
-        if self.pattern_class is not None:
-            # fix this because sometimes this can be just ordinary string
-            file_pattern = self.pattern_match_results["file_pattern"]
-            if isinstance(file_pattern, Text):
-                file_pattern = file_pattern.plain
-
-            await self.pattern_class.push_path_to_context_obj(
-                path=file_pattern,
-                tags=self.pattern_match_results["file_tag"],
-            )
+        pass
 
     def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         """
@@ -516,11 +403,7 @@ class FileItem(Widget):
             The event object containing information about the worker state
             change.
         """
-        if event.worker.name == "update_worker":
-            if event.state == WorkerState.SUCCESS:
-                callback_message = self.get_callback_message
-                self.pattern_match_results["callback_message"] = callback_message if callback_message is not None else []
-                self.post_message(self.PathPatternChanged(self, self.pattern_match_results))
+        pass
 
     @on(Button.Pressed, "#delete_button")
     def _on_delete_button_pressed(self, event) -> None:
@@ -531,13 +414,7 @@ class FileItem(Widget):
         It removes the file item from the cache (if it exists) and posts
         an `IsDeleted` message.
         """
-        # Creation of the FileItem does not automatically imply creation in the cache.
-        # For this a pattern needs to be created. By cancelling the modal, the widget is created but the filepattern is not.
-        if "-read-only" not in event.control.classes:
-            if self.id in ctx.cache:
-                ctx.cache.pop(self.id)
-                self.remove_all_duplicates()
-            self.post_message(self.IsDeleted(self, self.pattern_match_results))
+        pass
 
     @on(Button.Pressed, "#show_button")
     def _on_show_button_pressed(self) -> None:
@@ -548,7 +425,7 @@ class FileItem(Widget):
         opens the `ListOfFiles` modal to display the list of files found
         using the current file pattern.
         """
-        self.app.push_screen(ListOfFiles(self.pattern_match_results))
+        pass
 
     @on(Button.Pressed, "#info_button")
     def _on_info_button_pressed(self) -> None:
@@ -559,7 +436,7 @@ class FileItem(Widget):
         opens the `SimpleMessageModal` to display the meta information
         from the callback message.
         """
-        self.app.push_screen(SimpleMessageModal(self.callback_message, title="Meta information"))
+        pass
 
     def remove_all_duplicates(self) -> None:
         """
@@ -568,10 +445,7 @@ class FileItem(Widget):
         This method removes all other `FileItem` widgets with the same ID
         as the current widget.
         """
-        for w in self.app.walk_children(FileItem):
-            # remove itself standardly later
-            if w.id == self.id and w != self:
-                w.remove()
+        pass
 
     async def update_all_duplicates(self) -> None:
         """
@@ -580,9 +454,4 @@ class FileItem(Widget):
         This method updates all other `FileItem` widgets with the same ID
         as the current widget to have the same pattern match results.
         """
-        for w in self.app.walk_children(FileItem):
-            # remove itself standardly later
-            if w.id == self.id and w != self:
-                if w.pattern_match_results != self.pattern_match_results:
-                    await w._update_file_pattern(self.pattern_match_results)
-        self.from_edit = False
+        pass

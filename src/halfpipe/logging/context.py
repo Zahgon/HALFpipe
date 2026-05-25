@@ -51,42 +51,7 @@ class Context(object):
 
         return cls._instance
 
-    @classmethod
-    def setup_worker(cls) -> None:
-        instance = cls.instance()
-        with rlock:
-            if not isinstance(instance._queue, JoinableQueue):
-                instance._queue = JoinableQueue(ctx=mp_context)
-            if instance._worker is None:
-                instance._worker = mp_context.Process(target=run_worker, args=(instance._queue,))
-                instance._worker.start()
 
-    @classmethod
-    def teardown_worker(cls) -> None:
-        with rlock:
-            instance = cls._instance
-            if instance is None:
-                return
-
-            queue = instance._queue
-            worker = instance._worker
-            if worker is None or not isinstance(queue, JoinableQueue):
-                return
-
-            # wait for queue to empty
-            queue.join()
-
-            # send message with teardown command
-            obj = TeardownMessage()
-            queue.put(obj)
-
-            # wait up to one minute
-            worker.join(60.0)
-
-            queue.close()
-
-            instance._queue = NullQueue()
-            instance._worker = None
 
     @classmethod
     def queue(cls) -> Queue:

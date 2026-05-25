@@ -79,7 +79,7 @@ class SwitchWithInputBox(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.switch_with_input_box
+            pass
 
     @dataclass
     class SwitchChanged(Message):
@@ -89,7 +89,7 @@ class SwitchWithInputBox(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.switch_with_input_box
+            pass
 
     def __init__(
         self, label="", value: str | None = None, switch_value: bool = True, id: str | None = None, classes: str | None = None
@@ -125,7 +125,7 @@ class SwitchWithInputBox(Widget):
         This method is called automatically by Textual when the `value`
         reactive attribute changes.
         """
-        self.post_message(self.Changed(self, self.value))
+        pass
 
     def watch_switch_value(self) -> None:
         """
@@ -134,23 +134,11 @@ class SwitchWithInputBox(Widget):
         This method is called automatically by Textual when the
         `switch_value` reactive attribute changes.
         """
-        self.post_message(self.SwitchChanged(self, self.switch_value))
+        pass
 
-    def compose(self) -> ComposeResult:
-        yield Grid(
-            Static(self.label),
-            TextSwitch(value=self.switch_value, id="the_switch"),
-            Input(value=self.value, placeholder="Value", id="input_switch_input_box"),
-        )
 
-    def update_label(self, label):
-        self.query_one(Static).update(label)
 
-    def update_value(self, value):
-        self.get_widget_by_id("input_switch_input_box").value = value
 
-    def update_switch_value(self, value):
-        self.get_widget_by_id("the_switch").value = value
 
     def on_mount(self):
         """
@@ -159,22 +147,9 @@ class SwitchWithInputBox(Widget):
         This method is called when the widget is mounted. It sets the
         visibility of the input box based on the initial `switch_value`.
         """
-        if self.switch_value is True:  # or self.value is not None:
-            self.get_widget_by_id("input_switch_input_box").styles.visibility = "visible"
-        else:
-            self.get_widget_by_id("input_switch_input_box").styles.visibility = "hidden"
+        pass
 
-    @on(Switch.Changed)
-    def on_switch_changed(self, message):
-        self.switch_value = message.value
-        if self.switch_value is True:
-            self.get_widget_by_id("input_switch_input_box").styles.visibility = "visible"
-        else:
-            self.get_widget_by_id("input_switch_input_box").styles.visibility = "hidden"
 
-    @on(Input.Changed, "#input_switch_input_box")
-    def update_from_input(self):
-        self.value = self.get_widget_by_id("input_switch_input_box").value
 
     # def notify_style_update(self) -> None:
     #     # this does not work as expected
@@ -237,7 +212,7 @@ class SwitchWithSelect(SwitchWithInputBox):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.switch_with_select
+            pass
 
     @dataclass
     class SwitchChanged(Message):
@@ -247,7 +222,7 @@ class SwitchWithSelect(SwitchWithInputBox):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.switch_with_select
+            pass
 
     def __init__(
         self,
@@ -288,22 +263,7 @@ class SwitchWithSelect(SwitchWithInputBox):
         self.switch_value = switch_value
         self.value = self.default_option
 
-    @property
-    def selected(self):
-        # TODO revisite this after textual update
-        return self.query_exactly_one(Select).value
 
-    def compose(self) -> ComposeResult:
-        yield Grid(
-            Static(self.label),
-            TextSwitch(value=self.switch_value, id="the_switch"),
-            Select(
-                [(str(value[0]), value[1]) for value in self.options],
-                value=self.default_option,
-                allow_blank=False,
-                id="input_switch_input_box",
-            ),
-        )
 
     @on(Select.Changed, "#input_switch_input_box")
     def update_from_input(self):
@@ -313,7 +273,7 @@ class SwitchWithSelect(SwitchWithInputBox):
         This method is called when the selection list's value changes. It
         updates the `value` attribute of the widget.
         """
-        self.value = str(self.get_widget_by_id("input_switch_input_box").value)
+        pass
 
 
 class LabelWithInputBox(Widget):
@@ -363,24 +323,15 @@ class LabelWithInputBox(Widget):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.label_with_input_box
+            pass
 
     def __init__(self, label="", value: str | None = None, **kwargs) -> None:
         self.label = label
         self._reactive_value = str(value) if value is not None else None
         super().__init__(**kwargs)
 
-    def watch_value(self) -> None:
-        self.post_message(self.Changed(self, self.value))
 
-    def compose(self) -> ComposeResult:
-        yield Grid(
-            Static(self.label),
-            Input(value=self.value, placeholder="Value", id="input_label_input_box"),
-        )
 
-    def update_label(self, label):
-        self.query_one(Static).update(label)
 
     @on(Input.Changed, "#input_label_input_box")
     def update_from_input(self):
@@ -390,7 +341,7 @@ class LabelWithInputBox(Widget):
         This method is called when the input box's value changes. It
         updates the `value` attribute of the widget.
         """
-        self.value = str(self.get_widget_by_id("input_label_input_box").value)
+        pass
 
 
 class LabelledSwitch(Widget):
@@ -449,18 +400,8 @@ class LabelledSwitch(Widget):
         self.value = value
         self.help_message = help_message
 
-    def compose(self) -> ComposeResult:
-        yield Grid(
-            Static(self.label),
-            TextSwitch(self.value),
-        )
 
-    def update_value(self, value):
-        self.query_one(Switch).value = value
 
-    @on(Switch.Changed)
-    def _on_select(self, event):
-        self.post_message(self.Changed(event.value, self))
 
     @dataclass
     class Changed(Message):
@@ -472,7 +413,7 @@ class LabelledSwitch(Widget):
         @property
         def control(self) -> LabelledSwitch:
             """The Select that sent the message."""
-            return self.labelled_switch
+            pass
 
 
 class FocusLabel(Label):
@@ -492,7 +433,7 @@ class FocusLabel(Label):
         @property
         def control(self):
             """Alias for self.file_browser."""
-            return self.focus_label
+            pass
 
     background = reactive("gray")
     color = reactive("black")
@@ -502,15 +443,8 @@ class FocusLabel(Label):
         self.can_focus = True  # Make the label focusable
         self.select()
 
-    def watch_background(self, background: str) -> None:
-        self.styles.background = background
 
-    def watch_color(self, color: str) -> None:
-        self.styles.color = color
 
-    def on_focus(self) -> None:
-        self.select()
-        self.post_message(self.Selected(self))
 
     def select(self) -> None:
         self.background = "blue"

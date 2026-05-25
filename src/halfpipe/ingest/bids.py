@@ -192,14 +192,6 @@ class BidsDatabase:
         )
         return bids_path
 
-    def from_bids(self, bids_path: str) -> str | None:
-        file_path = self.file_paths.get(bids_path)
-        logger.debug(
-            "BidsDatabase.from_bids-> %s → %s",
-            bids_path,
-            file_path,
-        )
-        return file_path
 
     def tags(self, bids_path: str) -> dict | None:
         """

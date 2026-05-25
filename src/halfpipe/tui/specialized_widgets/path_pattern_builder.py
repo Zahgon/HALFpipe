@@ -40,16 +40,7 @@ def convert_validation_error_to_string(error: Any) -> str:
     str
         A string containing the formatted validation error messages.
     """
-    # `error.messages` contains the validation errors as a dictionary
-    result = []
-
-    for field, messages in error.messages.items():
-        # Join the list of error messages for each field into a single string
-        messages_str = ", ".join(messages)
-        result.append(f"{field}: {messages_str}")
-
-    # Return all error messages concatenated into a single string, separated by '; '
-    return "; ".join(result)
+    pass
 
 
 def check_wrapped_tags(path: str, tags: list[str]) -> bool:
@@ -72,14 +63,7 @@ def check_wrapped_tags(path: str, tags: list[str]) -> bool:
         True if any of the tags are found wrapped in curly braces,
         False otherwise.
     """
-    # Regular expression to check for keywords wrapped in curly braces
-    pattern = r"\{(" + "|".join(tags) + r")\}"
-
-    # Search for the pattern in the input string
-    match = re.search(pattern, path)
-
-    # Return True if a match is found, otherwise False
-    return bool(match)
+    pass
 
 
 class ColorButton(Button):
@@ -137,13 +121,7 @@ class ColorButton(Button):
         event : events.Click
             The click event.
         """
-        path_widget = self.app.get_widget_by_id("input_prompt")
-        if self.status == "on":
-            color = self.color
-        else:
-            color = "default"
-
-        path_widget.change_highlight_color(color)
+        pass
         #     self.status = 'on'
         # elif self.status == 'on':
         #     self.status = 'off'
@@ -285,75 +263,12 @@ class PathPatternBuilder(DraggableModalScreen):
         the UI components, including color buttons, the path input field,
         and action buttons.
         """
-        colors_and_labels = dict(zip(self.highlight_colors, self.labels, strict=False))
-        # self.active_button_id = "button_" + self.labels[0]
-        color_buttons = [
-            ColorButton(label=item[1], color=item[0], id="button_" + item[1], classes="color_buttons")
-            for item in colors_and_labels.items()
-        ]
-        # color_buttons[0].add_class("activated")
-
-        self.content.mount(
-            Horizontal(
-                Static(
-                    Text(
-                        "                                      !INSTRUCTIONS!\n"
-                        "1) Set the path of the file. Use browse or type or use ctrl+shift+c to paste\n"
-                        "2) If tags are required (such as subject, task, etc.) click on the color buttons below and "
-                        "highlight with mouse part of the path that you want to use as tag wildcard. \n"
-                        "EXAMPLE:\n"
-                        "/home/tomas/github/ds002785_v2/sub-0001/anat/sub-0001_T1w.nii.gz\n"
-                        "After submitting the highlighted parts will be replaced with a particular wildcard tag:\n"
-                        "/home/tomas/github/ds002785_v2/sub-{subject}/anat/sub-{subject}_T1w.nii.gz\n"
-                        "3) Press submit and check whether files were found.\n"
-                        "NOTE: If you paste or type the path already with the tags, steps 2 and 3 are not needed.",
-                        spans=[
-                            # First example highlights
-                            (303 + 39, 307 + 39, "#000000 on red"),
-                            (317 + 39, 321 + 39, "#000000 on red"),
-                            # Second example highlights
-                            (456 + 39, 465 + 39, "#000000 on red"),
-                            (475 + 39, 484 + 39, "#000000 on red"),
-                        ],
-                    )
-                ),
-                id="instruction_text",
-            ),
-            Grid(
-                Button("Browse", id="browse_button"),
-                Button("Reset highlights", id="reset_button"),
-                # Button("Reset all", id="reset_all"),
-                Button("Clear all", id="clear_all"),
-                # Button("Submit", id="submit_button"),
-                id="button_panel",
-            ),
-            InputWithColoredSuggestions(
-                [(Text(self.path), self.path)],
-                prompt_default=self.path,
-                colors_and_labels=colors_and_labels,
-                id="path_widget",
-            ),
-            Grid(
-                *color_buttons,
-                id="color_button_panel",
-            ),
-            Container(
-                Horizontal(
-                    Static("Found 0 files.", id="feedback"),
-                    Button("👁", id="show_button", classes="icon_buttons"),
-                    Button("Submit", id="submit_button"),
-                    id="feedback_container",
-                ),
-                Container(Button("OK", id="ok_button"), Button("Cancel", id="cancel_button"), id="bottom_button_container"),
-                id="feedback_and_confirm_panel",
-            ),
-        )
-        self.get_widget_by_id("color_button_panel").styles.grid_size_columns = len(self.labels)
+        pass
 
     @on(Button.Pressed, "#browse_button")
     def open_browse_window(self) -> None:
         """Opens a file browser modal window."""
-        self.app.push_screen(FileBrowserModal(path_test_function=path_test_with_isfile_true), self.update_input)
+        pass
 
     def update_input(self, selected_path: str) -> None:
         """
@@ -371,22 +286,22 @@ class PathPatternBuilder(DraggableModalScreen):
     @on(Button.Pressed, "#reset_button")
     def reset_highlights(self) -> None:
         """Resets all highlights in the input prompt."""
-        self.get_widget_by_id("input_prompt").reset_highlights()
+        pass
 
     @on(Button.Pressed, "#reset_all")
     def reset_all(self) -> None:
         """Resets all data and highlights in the input prompt."""
-        self.get_widget_by_id("input_prompt").reset_all()
+        pass
 
     @on(Button.Pressed, "#clear_all")
     def clear_all(self) -> None:
         """Clears the input prompt."""
-        self.get_widget_by_id("input_prompt").value = ""
+        pass
 
     @on(Button.Pressed, "#submit_button")
     def submit_highlights(self) -> None:
         """Submits the highlighted path for processing."""
-        self.get_widget_by_id("input_prompt").submit_path()
+        pass
 
     @on(InputWithColoredSuggestions.Changed)
     @on(SegmentHighlighting.Submitted)
@@ -405,29 +320,7 @@ class PathPatternBuilder(DraggableModalScreen):
         event : InputWithColoredSuggestions.Changed | SegmentHighlighting.Submitted | SegmentHighlighting.Changed
             The event object containing information about the change.
         """
-        if isinstance(event.value, Text):
-            event_value = event.value.plain
-            match_feedback_message, filepaths = resolve_path_wildcards(event_value)
-            self.path = event_value
-        else:
-            match_feedback_message, filepaths = resolve_path_wildcards(event.value)
-            self.path = event.value
-
-        highlights = self.get_widget_by_id("input_prompt").current_highlights
-        self.get_widget_by_id("feedback").update(match_feedback_message)
-        self.get_widget_by_id("show_button").tooltip = match_feedback_message
-        self.pattern_match_results.update(
-            {
-                "file_pattern": Text(self.path, spans=highlights),
-                "message": match_feedback_message,
-                "files": filepaths,
-            }
-        )
-        # Change outine from red to green if some files were found.
-        if len(self.pattern_match_results["files"]) > 0:
-            self.query_one(InputSegmentHighlightingWithUpDownArrows).styles.outline = ("solid", "green")
-        else:
-            self.query_one(InputSegmentHighlightingWithUpDownArrows).styles.outline = ("solid", "red")
+        pass
 
     @on(Button.Pressed, ".color_buttons")
     def activate_and_deactivate_press(self, event: Button.Pressed) -> None:
@@ -443,40 +336,7 @@ class PathPatternBuilder(DraggableModalScreen):
         event : Button.Pressed
             The button pressed event.
         """
-        _id = event.button.id
-        logger.debug(f"UI->PathPatternBuilder->clicked color button: {_id}")
-        logger.debug(f"UI->PathPatternBuilder->last active color button: {self.active_button_id}")
-        # If there was an active button, deactivate it visually
-        previous_widget = None
-        if self.active_button_id is not None:
-            previous_widget = self.get_widget_by_id(self.active_button_id)
-            previous_widget.remove_class("activated")
-
-        # Clicking a different button
-        if self.active_button_id != _id:
-            new_widget = self.get_widget_by_id(_id)
-            new_widget.add_class("activated")
-            # Update statuses
-            if previous_widget:
-                previous_widget.status = "on"
-            new_widget.status = "off"
-            # Set new active button
-            self.active_button_id = _id
-
-        # Clicking the same button
-        else:
-            # Toggle off if it was active
-            if self.active_button_id is not None:
-                previous_widget.status = "on"
-                self.active_button_id = None
-            # Toggle on if it was inactive
-            else:
-                previous_widget = self.get_widget_by_id(_id)
-                previous_widget.add_class("activated")
-                previous_widget.status = "off"
-                self.active_button_id = _id
-
-        logger.debug(f"UI->PathPatternBuilder->new active color button: {self.active_button_id}")
+        pass
 
     @on(Button.Pressed, "#ok_button")
     async def _ok(self, event: Button.Pressed) -> None:
@@ -493,26 +353,7 @@ class PathPatternBuilder(DraggableModalScreen):
         event : Button.Pressed
             The button pressed event.
         """
-        # Here we try to catch the Marshmallow schema error, if the extension is wrong
-        try:
-            path = (
-                self.pattern_match_results["file_pattern"].plain
-                if isinstance(self.pattern_match_results["file_pattern"], Text)
-                else self.pattern_match_results["file_pattern"]
-            )
-            self.pattern_class.check_extension(path)
-            self._ok_part_two()
-        except Exception as e:
-            await self.app.push_screen(
-                Confirm(
-                    convert_validation_error_to_string(e),
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="File pattern error",
-                    classes="confirm_error",
-                )
-            )
+        pass
 
     @work(exclusive=True, name="fill_ctx_spec")
     async def _ok_part_two(self) -> None:
@@ -524,94 +365,8 @@ class PathPatternBuilder(DraggableModalScreen):
         dismisses the modal if the pattern is valid. If the mandatory
         tag is missing, it displays an error message.
         """
-        # if all is good from '_ok', continue here
-        logger.debug(f"UI->PathPatternBuilder._ok_part_two: mandatory_tags:{self.mandatory_tags}")
-        tagglobres = list(tag_glob(self.pattern_match_results["file_pattern"].plain))
-        task_set = set()
-        for _filepath, tagdict in tagglobres:
-            task = tagdict.get("task", None)
-            if task is not None:
-                task_set.add(task)
-        logger.debug(f"UI->PathPatternBuilder._ok_part_two-> ctx.available_images:{ctx.available_images}")
-        logger.debug(f"UI->PathPatternBuilder._ok_part_two-> found tasks:{task_set}")
+        pass
 
-        compatible_task_tags = True
-        if ctx.available_images and not task_set < set(ctx.available_images["task"]) and "{task}" in self.mandatory_tags:
-            compatible_task_tags = await self.app.push_screen_wait(
-                Confirm(
-                    f"The task tags are not the same as extracted from the bold files!\n\
-The task tags from bold files are:\n{sorted(set(ctx.available_images['task']))}\n\
-Your event file task tags are: \n{sorted(task_set)}.\
-\nOnly the same tags will be associated together.\nProceed?",
-                    left_button_text="YES",
-                    right_button_text="NO",
-                    left_button_variant="error",
-                    right_button_variant="success",
-                    title="Task tag mismatch",
-                    classes="confirm_warning",
-                )
-            )
-
-        if not all(tag in self.pattern_match_results["file_pattern"] for tag in self.mandatory_tags):
-            # if self.mandatory_tags not in self.pattern_match_results["file_pattern"]:
-            await self.app.push_screen_wait(
-                Confirm(
-                    f"Mandatory tag missing! Use all mandatory tags!\n Mandatory tags are: {self.mandatory_tags}!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Missing name",
-                    classes="confirm_error",
-                )
-            )
-            return
-        logger.debug(
-            f"UI->PathPatternBuilder._ok_part_two-> allow_file_tagging:{self.pattern_class.allow_file_tagging},\
-             tag_entity:{self.pattern_class.tag_entity}, file_pattern:{self.pattern_match_results['file_pattern']}"
-        )
-        if (
-            self.pattern_class.allow_file_tagging
-            and "{" + self.pattern_class.tag_entity + "}" not in self.pattern_match_results["file_pattern"]
-        ):
-            self.pattern_match_results["file_tag"] = await self.app.push_screen_wait(
-                NameInput(
-                    self.get_occupied_tags(),
-                    default_value="",
-                    message=f"Enter a label for '{self.manual_tag_entity}' or "
-                    f"return and use the '{self.manual_tag_entity}' wildcard",
-                    title="Tag label",
-                    id="file_tag_modal",
-                    classes="confirm_warning",
-                )
-            )
-            # when user hits cancel on the modal
-            if self.pattern_match_results["file_tag"] is None:
-                return
-
-        if compatible_task_tags:
-            self.dismiss(self.pattern_match_results)
-
-    def get_occupied_tags(self):
-        # Map step classes to the suffix they care about
-        suffix_map = {
-            AddBinarySeedMapStep: "seed",
-            AddSpatialMapStep: "map",
-            AddAtlasImageStep: "atlas",
-            EventsStep: "task",
-        }
-
-        occupied_tags = []
-
-        # Look up the expected suffix for the current pattern class
-        expected_suffix = suffix_map.get(type(self.pattern_class))
-        if expected_suffix:  # only proceed if the class is recognized
-            for name in list(ctx.cache.keys()):
-                if ctx.cache[name]["files"] != {} and name != "bids":
-                    f: Any = ctx.cache[name]["files"]
-                    if f.suffix == expected_suffix:
-                        # collect the first tag value
-                        occupied_tags.append(next(iter(f.tags.values())))
-        return occupied_tags
 
     @on(Button.Pressed, "#cancel_button")
     def _close(self, event: Button.Pressed) -> None:
@@ -626,7 +381,7 @@ Your event file task tags are: \n{sorted(task_set)}.\
         event : Button.Pressed
             The button pressed event.
         """
-        self.dismiss(False)
+        pass
 
     @on(Button.Pressed, "#show_button")
     def _remove_self(self) -> None:
@@ -637,7 +392,7 @@ Your event file task tags are: \n{sorted(task_set)}.\
         opens the `ListOfFiles` modal to display the list of files found
         using the current file pattern.
         """
-        self.app.push_screen(ListOfFiles(self.pattern_match_results))
+        pass
 
     #
     # async def on_key(self, event: events.Key) -> None:
@@ -667,7 +422,7 @@ Your event file task tags are: \n{sorted(task_set)}.\
         This method is called when the user presses the Enter key. It
         submits the current path pattern for processing.
         """
-        self.get_widget_by_id("input_prompt").submit_path()
+        pass
 
     def key_escape(self) -> None:
         """
@@ -676,4 +431,4 @@ Your event file task tags are: \n{sorted(task_set)}.\
         This method is called when the user presses the Escape key. It
         dismisses the modal.
         """
-        self.dismiss(False)
+        pass

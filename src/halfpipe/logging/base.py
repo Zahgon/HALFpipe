@@ -30,17 +30,8 @@ loggernames = [
 ]
 
 
-def showwarning(message, category, filename, lineno, _=None, line=None):
-    s = warnings.formatwarning(message, category, filename, lineno, line)
-    logger = logging.getLogger("py.warnings")
-    logger.warning(f"{s}", stack_info=True)
 
 
-def setup_context():
-    LoggingContext.setup_worker()
-    queue = LoggingContext.queue()
-    assert isinstance(queue, JoinableQueue)
-    setup(queue)
 
 
 def setup(queue, levelno=logging.INFO):
@@ -89,9 +80,6 @@ def setup(queue, levelno=logging.INFO):
     # monkey patch nipype and fmriprep
     # so that thhe logging config will not be overwritten
 
-    def empty_method(self, *args, **kwargs):
-        _, _, _ = self, args, kwargs
-        pass
 
     def empty_init(_):
         pass
@@ -103,5 +91,3 @@ def setup(queue, levelno=logging.INFO):
     fmriprep_loggers.init = MethodType(empty_init, fmriprep_loggers)
 
 
-def teardown():
-    LoggingContext.teardown_worker()

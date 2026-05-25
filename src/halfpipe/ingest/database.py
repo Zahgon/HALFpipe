@@ -195,8 +195,6 @@ class Database:
         if tagdict is not None:
             return tagdict.get(entity)
 
-    def tagvaldict(self, entity):
-        return self.filepaths_by_tags.get(entity)
 
     def get(self, **filters: str) -> set[str]:
         logger.debug("Database.get-> filters=%s", filters)
@@ -229,36 +227,6 @@ class Database:
             return set()
         return res
 
-    def filter(self, filepaths, **filters: str) -> set[str]:
-        logger.debug(
-            "Database.filter-> start filepaths=%d filters=%s",
-            len(filepaths),
-            filters,
-        )
-
-        res = set(filepaths)
-
-        for entity, tagval in filters.items():
-            logger.debug(
-                "Database.filter-> applying %s=%s",
-                entity,
-                tagval,
-            )
-            if entity not in self.filepaths_by_tags:
-                logger.debug("Database.filter-> entity %s not indexed", entity)
-                return set()
-            if tagval not in self.filepaths_by_tags[entity]:
-                logger.debug("Database.filter-> tagval %s not found for %s", tagval, entity)
-                return set()
-            cur_set = self.filepaths_by_tags[entity][tagval]
-            res &= cur_set
-
-        logger.debug(
-            "Database.filter-> remaining=%d",
-            len(res),
-        )
-
-        return res
 
     def applyfilters(self, filepaths: Iterable[str], filters: Any) -> set[str]:
         if not isinstance(filters, (tuple, list)) and hasattr(filters, "filters"):

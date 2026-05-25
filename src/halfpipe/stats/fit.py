@@ -28,18 +28,6 @@ class VoxelData(NamedTuple):
     contrast_matrices: dict[str, npt.NDArray[np.float64]]
 
 
-def voxel_calc(voxel_data: VoxelData) -> dict:
-    with threadpool_limits(limits=1, user_api="blas"):
-        return {
-            name: algorithm.voxel_calc(
-                voxel_data.coordinate,
-                voxel_data.effect,
-                voxel_data.design_matrix,
-                voxel_data.variance,
-                voxel_data.contrast_matrices,
-            )
-            for name, algorithm in voxel_data.algorithm_dict.items()
-        }
 
 
 def load_data(

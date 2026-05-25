@@ -62,41 +62,7 @@ class EventFilePanel(FilePanelTemplate):
         and calls `create_file_item` to create and mount the new file item
         widget.
         """
-
-        async def proceed_with_choice(choice):
-            """
-            Proceeds with the creation of a file item based on the user's choice.
-
-            This method is called after the user has selected an event file
-            type in the `SelectionModal`. It maps the user's choice to the
-            appropriate `pattern_class` and then calls `create_file_item`
-            to create and mount the new file item widget.
-
-            Parameters
-            ----------
-            choice : str | bool
-                The user's choice of event file type, or False if the
-                selection was canceled.
-            """
-            if choice is not False:
-                options_class_map = {"spm": MatEventsStep, "fsl": TxtEventsStep, "bids": TsvEventsStep}
-                self.pattern_class = options_class_map[choice]
-                await self.create_file_item(load_object=None)
-
-        options = {
-            "spm": "SPM multiple conditions",
-            "fsl": "FSL 3-column",
-            "bids": "BIDS TSV",
-        }
-        self.app.push_screen(
-            SelectionModal(
-                title="Event file type specification",
-                instructions="Specify the event file type",
-                options=options,
-                id="event_files_type_modal",
-            ),
-            proceed_with_choice,
-        )
+        pass
 
 
 class AtlasFilePanel(FilePanelTemplate):

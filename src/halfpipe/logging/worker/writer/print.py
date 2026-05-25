@@ -15,18 +15,6 @@ class PrintWriter(Writer):
         sys.stdout.write(stackprinter.format())
         sys.stdout.flush()
 
-    @property
-    def delay(self) -> float:
-        return 0
 
-    def emit_message(self, message: LogMessage):
-        msg = message.short_msg
-        levelno = message.levelno
 
-        self.emit(msg, levelno)
 
-    def emit(self, msg: str, _: int):
-        sys.stdout.write(msg + self.terminator)
-
-    def release(self):
-        sys.stdout.flush()

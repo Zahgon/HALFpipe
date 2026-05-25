@@ -42,8 +42,6 @@ def find_derivatives_directories(name: str, path: str | AnyPath, max_depth: int 
         yield path
 
 
-def create_index(derivatives_directory: AnyPath) -> BIDSIndex:
-    return BIDSIndex().put(derivatives_directory)
 
 
 def collect_halfpipe_derivatives(paths: Iterable[str | AnyPath], max_depth: int = 1, num_threads: int = 1) -> list[ResultDict]:

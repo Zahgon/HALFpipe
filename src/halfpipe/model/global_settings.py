@@ -53,9 +53,3 @@ class GlobalSettingsSchema(Schema):
     reference_res = fields.Int(dump_default=2)
     reference_space = fields.Str(dump_default="MNI152NLin2009cAsym")
 
-    @pre_load
-    def fill_default_values(self, in_data, **_):  # make load_default equal to dump_default
-        for k, v in self.fields.items():
-            if k not in in_data:
-                in_data[k] = v.dump_default
-        return in_data

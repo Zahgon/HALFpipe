@@ -24,45 +24,6 @@ from ..configurables import configurables
 from ..memory import MemoryCalculator
 
 
-def _contrasts(map_timeseries_file: str | None = None, confounds_file: str | None = None) -> tuple[str, str, list[str]]:
-    import csv
-    from pathlib import Path
-
-    import numpy as np
-    import pandas as pd
-
-    from halfpipe.ingest.spreadsheet import read_spreadsheet
-
-    if map_timeseries_file is None:
-        raise ValueError("map_timeseries_file must be provided")
-
-    map_timeseries_df = read_spreadsheet(map_timeseries_file)
-    _, m = map_timeseries_df.shape
-
-    k = 0
-    confounds_df = None
-    if confounds_file is not None:
-        confounds_df = read_spreadsheet(confounds_file)
-        _, k = confounds_df.shape
-
-    contrast_mat = np.zeros((m, m + k))
-    contrast_mat[:m, :m] = np.eye(m)
-
-    leading_zeros = int(np.ceil(np.log10(m)))
-    map_component_names = [f"{i:0{leading_zeros}d}" for i in range(1, m + 1)]
-
-    if confounds_df is not None:
-        contrast_columns = [*map_component_names, *confounds_df.columns]
-    else:
-        contrast_columns = [*map_component_names]
-    contrast_df = pd.DataFrame(contrast_mat, index=map_component_names, columns=contrast_columns)
-
-    kwargs: dict[str, Any] = dict(sep="\t", na_rep="n/a", quoting=csv.QUOTE_NONNUMERIC)
-    out_with_header = Path.cwd() / "merge_with_header.tsv"
-    contrast_df.to_csv(out_with_header, index=True, header=True, **kwargs)
-    out_no_header = Path.cwd() / "merge_no_header.tsv"
-    contrast_df.to_csv(out_no_header, index=False, header=False, **kwargs)
-    return str(out_with_header), str(out_no_header), map_component_names
 
 
 def init_dualregression_wf(

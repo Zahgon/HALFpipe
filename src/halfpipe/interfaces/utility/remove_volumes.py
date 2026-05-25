@@ -17,6 +17,3 @@ class RemoveVolumes(ArrayTransform):
     input_spec = RemoveVolumesInputSpec
     suffix = "cut"
 
-    def _transform(self, array: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        array2 = array[self.inputs.count :, ...]
-        return array2

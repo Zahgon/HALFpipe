@@ -15,8 +15,6 @@ from typing import Any, Callable, ContextManager, Iterable, Iterator, Sized, Typ
 mp_context = get_context("spawn")
 
 
-def mock_tqdm(iterable, *args, **kwargs):
-    return iterable
 
 
 def get_init_args() -> tuple[set[int] | None, dict[str, Any], dict[str, str], str]:
@@ -34,33 +32,6 @@ def get_init_args() -> tuple[set[int] | None, dict[str, Any], dict[str, str], st
     )
 
 
-def initializer(
-    sched_affinity: set[int] | None,
-    logging_kwargs: dict[str, Any],
-    host_env: dict[str, str],
-    host_cwd: str,
-) -> None:
-    if sched_affinity is not None:
-        if hasattr(os, "sched_setaffinity"):
-            os.sched_setaffinity(0, sched_affinity)
-
-    os.chdir(host_cwd)
-
-    # Do not show tqdm progress bars from subprocesses as per
-    # https://github.com/nsidc/earthaccess/issues/612#issuecomment-2189744434
-    from tqdm import tqdm
-    from tqdm.auto import tqdm as tqdm_auto
-
-    tqdm.__init__ = partialmethod(tqdm.__init__, disable=True)  # type: ignore
-    tqdm_auto.__init__ = partialmethod(tqdm_auto.__init__, disable=True)  # type: ignore
-
-    # Make sure we send all logging to the logger process
-    from ..logging.base import setup as setup_logging
-
-    setup_logging(**logging_kwargs)
-
-    # Make sure we use the same environment variables as the parent process
-    os.environ.update(host_env)
 
 
 def terminate() -> None:
@@ -130,16 +101,8 @@ def make_pool_or_null_context(
     return cm, output_iterator
 
 
-def reduce_zipfile_path(path: zipfile.Path) -> tuple[Callable, tuple[str, str]]:
-    # Extract the necessary components to reconstruct the Path
-    if path.root.filename is None:
-        raise ValueError("Cannot reduce a zipfile.Path without a filename")
-    return rebuild_zipfile_path, (path.root.filename, path.at)
 
 
-def rebuild_zipfile_path(root: str, at: str) -> zipfile.Path:
-    # Reconstruct a zipfile.Path object
-    return zipfile.Path(root, at=at)
 
 
 mp_reduction.register(zipfile.Path, reduce_zipfile_path)

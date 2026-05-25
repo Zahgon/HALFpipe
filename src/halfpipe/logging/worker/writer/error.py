@@ -39,17 +39,5 @@ class ReportErrorWriter(FileWriter):
 
         return False
 
-    def acquire(self) -> None:
-        if self.filename is None:
-            return
-        if self.dictlistfile is None:
-            self.dictlistfile = SynchronizedTable(self.filename)
-        self.dictlistfile.__enter__()
 
-    def emit_message(self, message: LogMessage) -> None:
-        if self.dictlistfile is not None:
-            self.dictlistfile.put(dict(node=message.node))
 
-    def release(self) -> None:
-        if self.dictlistfile is not None:
-            self.dictlistfile.__exit__(None, None, None)

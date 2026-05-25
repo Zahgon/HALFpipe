@@ -23,13 +23,6 @@ entity_colors = {
 }
 
 
-def makenamesuggestion(*words, index=None):
-    suggestion = " ".join(words)
-    suggestion = camelize(underscore(parameterize(suggestion)), False)
-    suggestion = forbidden_chars.sub("", suggestion)
-    if index is not None:
-        suggestion = f"{suggestion}{index}"
-    return suggestion
 
 
 def messagefun(database, filetype, filepaths, tagnames, entity_display_aliases: dict | None = None):

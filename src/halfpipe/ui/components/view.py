@@ -34,11 +34,6 @@ class View:
     def __repr__(self):
         return f"View[id={self.id}]"
 
-    @property
-    def layout(self) -> Layout:
-        if self._layout is None:
-            raise ValueError("View is not part of a layout")
-        return self._layout
 
     def setup(self):
         # cannot do this in constructor, as curses may not be initialized yet
@@ -72,9 +67,6 @@ class View:
         self.setup()
         return self.update()
 
-    def focus(self):
-        self.layout.focus(self)
-        return self
 
     def erase_at(self, y, n: int | None = None):
         if n is None:
@@ -91,17 +83,9 @@ class View:
             size = self.erase_at(y)
             self._set_view_size(size)
 
-    def _show_cursor(self):
-        self.layout.app.dispatch(Cursor.show)
 
-    def _hide_cursor(self):
-        self.layout.app.dispatch(Cursor.hide)
 
-    def _clear_status_bar(self):
-        self.layout.app.dispatch(self.layout.clear_status_bar)
 
-    def _set_status_bar(self, text):
-        self.layout.app.dispatch(functools.partial(self.layout.set_status_bar, text))
 
     def _get_view_width(self):
         return self._view_width
@@ -183,8 +167,6 @@ class CallableView(View):
     def _before_call(self):
         raise NotImplementedError
 
-    def _after_call(self):
-        self._clear_status_bar()
 
     def _handle_key(self, c):
         raise NotImplementedError

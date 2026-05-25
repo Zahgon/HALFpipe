@@ -161,13 +161,6 @@ def cgroup_memory_limit():
         return min(memory_limits) * ureg.bytes
 
 
-def make_process_independent():
-    pid = os.getpid()
-    if pid > 0:
-        try:
-            os.setpgid(pid, pid)
-        except OSError:
-            pass
 
 
 def ulimit_memory_limit():

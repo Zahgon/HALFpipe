@@ -58,13 +58,4 @@ class ListOfFiles(DraggableModalScreen):
         self.pattern_match_results = pattern_match_results
         self.title_bar.title = "List of matching files"
 
-    def on_mount(self) -> None:
-        self.content.mount(
-            Static(self.pattern_match_results["message"], id="message"),
-            ScrollableContainer(Static("\n".join(sorted(self.pattern_match_results["files"])), id="file_list")),
-            Horizontal(Button("Close", id="close_button"), id="close_button_container"),
-        )
 
-    @on(Button.Pressed, "#close_button")
-    def _on_close_button_pressed(self):
-        self.app.pop_screen()

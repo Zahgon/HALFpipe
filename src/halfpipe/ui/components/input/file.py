@@ -27,13 +27,7 @@ class FileInputView(CallableView):
         self.cur_dir_files = []
         self.exists = exists
 
-    @property
-    def text(self):
-        return self.text_input_view.text
 
-    @text.setter
-    def text(self, val):
-        self.text_input_view.text = val
 
     def setup(self):
         super(FileInputView, self).setup()
@@ -42,123 +36,11 @@ class FileInputView(CallableView):
         self.suggestion_view._layout = self.layout
         self.suggestion_view.setup()
 
-    def _before_call(self):
-        self.text_input_view._before_call()
-        self.text_input_view.is_active = True
-        self._scan_files()
 
-    def _is_ok(self):
-        if self.exists:
-            try:
-                path = str(self.text).strip()
-                return op.isfile(resolve(path))
-            except Exception:
-                return False
-        return True
 
-    def _get_output(self):
-        if self.text is not None:
-            try:
-                path = str(self.text).strip()
-                return resolve(path)
-            except Exception:
-                pass
 
-    def _scan_dir(self):
-        path = str(self.text).strip()
-        dir = get_dir(path)
-        if dir != self.cur_dir:
-            self.cur_dir = dir
-            self.cur_dir_files = []
 
-            try:
-                real_dir = resolve(self.cur_dir)
-                with os.scandir(real_dir) as it:
-                    for entry in it:
-                        try:
-                            filepath = entry.name
-                            if filepath[0] == ".":
-                                continue
-                            if entry.is_dir():
-                                filepath += "/"
-                            self.cur_dir_files.append(filepath)
-                        except OSError:
-                            pass
-            except OSError:
-                pass
 
-    def _scan_files(self):
-        if self.text is None:
-            return
-
-        self._scan_dir()
-
-        new_matching_files = []
-        basename = op.basename(self.text)
-        for entry in self.cur_dir_files:
-            if entry.startswith(basename):
-                new_matching_files.append(entry)
-        new_matching_files.sort()
-        self.matching_files = new_matching_files
-        self.suggestion_view.set_options(self.matching_files)
-
-    def _handle_key(self, c):
-        if c == Key.Break:
-            self.text = None
-            self.suggestion_view.set_options([])
-            self.is_active = False
-        elif self.suggestion_view.is_active and self.suggestion_view.cur_index is not None:
-            if c == Key.Up and self.suggestion_view.cur_index == 0:
-                self.suggestion_view.offset = 0
-                self.suggestion_view.cur_index = None
-                self.suggestion_view.is_active = False
-                self.text_input_view.is_active = True
-                self.text_input_view._before_call()
-                self.update()
-            elif c == Key.Return or c == Key.Right:
-                self.text = op.join(op.dirname(str(self.text)), str(self.suggestion_view._get_output()))
-                self._scan_files()
-                self.suggestion_view.cur_index = None
-                self.suggestion_view.is_active = False
-                self.text_input_view.is_active = True
-                self.text_input_view.cur_index = len(self.text)
-                self.text_input_view._before_call()
-                self.update()
-            elif c == Key.Left:
-                self.text = op.dirname(str(self.text))
-                self._scan_files()
-                self.update()
-            else:
-                self.suggestion_view._handle_key(c)
-        else:
-            cur_text = self.text
-            if c == Key.Down and len(self.matching_files) > 0:
-                self.suggestion_view.is_active = True
-                self.text_input_view.is_active = False
-                self.suggestion_view._before_call()
-                self.update()
-            elif c == Key.Tab and len(self.matching_files) > 0:
-                cc = common_chars(self.matching_files)
-                self.text = op.join(op.dirname(str(self.text)), cc)
-                self.text_input_view.cur_index = len(self.text)
-            elif c == Key.Return:
-                if self._is_ok():
-                    self.suggestion_view.set_options([])
-                    self.suggestion_view.is_active = False
-                    self.text_input_view.is_active = False
-                    self.is_active = False
-            else:
-                if not self.text_input_view.is_active:
-                    self.suggestion_view.is_active = False
-                    self.text_input_view.is_active = True
-                    self.text_input_view._before_call()
-                    self.update()
-                self.text_input_view._handle_key(c)
-
-            if self.text is not None and self.text != cur_text:
-                # was changed
-                self._scan_files()
-                self.update()
 
     def draw_at(self, y: int | None) -> int | None:
         if y is None:
@@ -182,34 +64,4 @@ class FileInputView(CallableView):
 
 
 class DirectoryInputView(FileInputView):
-    def _is_ok(self):
-        if self.exists:
-            try:
-                path = str(self.text).strip()
-                return op.isdir(resolve(path))
-            except Exception:
-                return False
-        return True
 
-    def _scan_dir(self):
-        path = str(self.text).strip()
-        dir = get_dir(path)
-        if dir != self.cur_dir:
-            self.cur_dir = dir
-            self.cur_dir_files = []
-
-            try:
-                real_dir = resolve(self.cur_dir)
-                with os.scandir(real_dir) as it:
-                    for entry in it:
-                        try:
-                            filepath = entry.name
-                            if filepath[0] == ".":
-                                continue
-                            if entry.is_dir():
-                                filepath += "/"
-                                self.cur_dir_files.append(filepath)
-                        except OSError:
-                            pass
-            except OSError:
-                pass

@@ -18,16 +18,7 @@ def binarize(array, lowerth, upperth, threstype="inclusive", invert: bool = Fals
     numpy translation of fsl newimage.cc binarise
     default arguments come from newimagefns.h:142
     """
-
-    if threstype == "inclusive":
-        it = np.logical_and(array >= lowerth, array <= upperth)
-    elif threstype == "exclusive":
-        it = np.logical_and(array > lowerth, array < upperth)
-    else:
-        raise ValueError()
-
-    array2 = np.logical_xor(invert, it)
-    return array2
+    pass
 
 
 def regfilt(
@@ -40,55 +31,7 @@ def regfilt(
     """
     numpy translation of fsl fsl_regfilt.cc dofilter
     """
-
-    zero_based_comps = [c - 1 for c in comps]
-
-    # Setup
-    data = array.copy()
-
-    mask_vec: npt.NDArray | None = None
-    if calculate_mask is True:
-        mean = data.mean(axis=0)
-        mmin = mean.min()
-        mmax = mean.max()
-        mask = binarize(mean, mmin + 0.01 * (mmax - mmin), mmax)
-        mask_vec = np.ravel(mask)
-        data = data[:, mask_vec]
-
-    m, n = data.shape
-    logger.info(f"Data matrix size : {m} x {n}")
-
-    mean_r = data.mean(axis=0)
-    data -= mean_r[None, :]
-    # Standardize design for numerical stability
-    design = scipy.stats.zscore(design, axis=0)
-    # Zscore sets zero variance columns to nan, convert these to zero
-    design = np.nan_to_num(design)
-
-    # dofilter
-    noisedes = design[:, zero_based_comps]
-
-    if aggressive:
-        logger.info("Calculating maps")
-        maps, _, _, _ = np.linalg.lstsq(noisedes, data, rcond=None)
-        logger.info("Calculating filtered data")
-        new_data = data - noisedes @ maps
-    else:
-        logger.info("Calculating maps")
-        maps, _, _, _ = np.linalg.lstsq(design, data, rcond=None)
-        noisemaps = maps[zero_based_comps, :]
-        logger.info("Calculating filtered data")
-        new_data = data - noisedes @ noisemaps
-
-    new_data += mean_r[None, :]
-
-    if calculate_mask is True:
-        temp_vol = np.zeros_like(array)
-        temp_vol[:, mask_vec] = new_data
-    else:
-        temp_vol = new_data
-
-    return temp_vol
+    pass
 
 
 class FilterRegressorInputSpec(ArrayTransformInputSpec):
@@ -109,28 +52,3 @@ class FilterRegressor(ArrayTransform):
 
     suffix = "regfilt"
 
-    def _transform(self, array: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore", category=UserWarning)
-            design = np.loadtxt(self.inputs.design_file, dtype=np.float64, ndmin=2)
-
-        if design.size == 0:
-            return array
-
-        filter_all = self.inputs.filter_all
-        if filter_all is True:
-            filter_columns = list(range(1, design.shape[1] + 1))
-        else:
-            filter_columns = self.inputs.filter_columns
-
-        calculate_mask = isdefined(self.inputs.mask) and self.inputs.mask is True
-
-        np.nan_to_num(array, copy=False)  # nans create problems further down the line
-
-        return regfilt(
-            array,
-            design,
-            filter_columns,
-            calculate_mask=calculate_mask,
-            aggressive=self.inputs.aggressive,
-        )

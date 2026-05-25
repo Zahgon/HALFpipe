@@ -10,21 +10,6 @@ from numpy import typing as npt
 from ..array_transform import ArrayTransform, ArrayTransformInputSpec
 
 
-@guvectorize(
-    ["void(float64[:], float64[:])"],
-    "(n)->()",
-    nopython=True,
-)
-def tsnr(array: npt.NDArray[np.float64], tsnr: npt.NDArray[np.float64]) -> None:
-    array = np.nan_to_num(array, copy=False)
-
-    mean = array.mean()
-    standard_deviation = np.sqrt(np.square(array - mean).mean())
-
-    if standard_deviation < 1e-3:
-        tsnr[0] = 0.0
-    else:
-        tsnr[0] = mean / standard_deviation
 
 
 class TSNRInputSpec(ArrayTransformInputSpec):
@@ -35,13 +20,3 @@ class TSNR(ArrayTransform):
     input_spec = TSNRInputSpec
     suffix = "tsnr"
 
-    def _transform(self, array: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        if isdefined(self.inputs.dummy_scans):
-            array = array[self.inputs.dummy_scans :, ...]
-
-        array = tsnr(array.transpose()).transpose()
-
-        # Ensure we have a two-dimensional array
-        array = array[np.newaxis, :]
-
-        return array

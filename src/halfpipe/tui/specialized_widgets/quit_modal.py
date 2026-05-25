@@ -15,10 +15,7 @@ async def quit_modal(self):
         modal_value : bool
             True if the user confirmed, False otherwise.
         """
-        if modal_value:
-            self.app.exit(result=False)
-        else:
-            pass
+        pass
 
     # raise the modal only once not matter what
     if "quit_modal" not in [w.id for w in self.app.walk_children()]:

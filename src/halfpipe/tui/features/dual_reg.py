@@ -49,5 +49,3 @@ class DualReg(AtlasSeedDualRegBasedTemplate):
     file_panel_class = SpatialMapFilePanel
     defaults = dual_reg_defaults
 
-    async def on_mount(self) -> None:
-        self.get_widget_by_id("minimum_coverage").remove()

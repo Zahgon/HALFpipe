@@ -31,26 +31,8 @@ modelfit_contrast_outputs = frozenset([output for a in algorithms.values() for o
 modelfit_exclude: FrozenSet[str] = frozenset([])
 
 
-def _fe_run_mode(var_cope_file):
-    from pathlib import Path
-
-    if isinstance(var_cope_file, (Path, str)) and Path(var_cope_file).exists():
-        return "fe"
-
-    else:
-        return "ols"
 
 
-def _critical_z(voxels=None, resels=None, critical_p=0.05):
-    import numpy as np
-    from scipy.stats import norm  # type: ignore
-
-    voxels = np.array(voxels)
-    resels = np.array(resels)
-
-    critical_z_array = norm.isf(critical_p / (voxels / resels))
-
-    return critical_z_array.tolist()
 
 
 def init_stats_wf(

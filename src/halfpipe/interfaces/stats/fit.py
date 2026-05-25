@@ -49,44 +49,5 @@ class ModelFit(IOBase):
         super(ModelFit, self).__init__(**inputs)
         self._results = dict()
 
-    def _add_output_traits(self, base):
-        algorithm_dict = make_algorithms_dict(self.inputs.algorithms_to_run)
-        fieldnames = list()
-        for algorithm in algorithm_dict.values():
-            fieldnames.extend(algorithm.model_outputs)
-            fieldnames.extend(algorithm.contrast_outputs)
-        return add_traits(base, fieldnames)
 
-    def _list_outputs(self):
-        return self._results
 
-    def _run_interface(self, runtime):
-        var_cope_files = self.inputs.var_cope_files
-
-        if not isdefined(var_cope_files):
-            var_cope_files = None
-
-        prev_os_environ = os.environ.copy()
-        os.environ.update(
-            {
-                "MKL_NUM_THREADS": "1",
-                "NUMEXPR_NUM_THREADS": "1",
-                "OMP_NUM_THREADS": "1",
-            }
-        )
-
-        self._results.update(
-            fit(
-                cope_files=self.inputs.cope_files,
-                var_cope_files=var_cope_files,
-                mask_files=self.inputs.mask_files,
-                regressors=self.inputs.regressors,
-                contrasts=self.inputs.contrasts,
-                algorithms_to_run=self.inputs.algorithms_to_run,
-                num_threads=self.inputs.num_threads,
-            )
-        )
-
-        os.environ.update(prev_os_environ)
-
-        return runtime

@@ -47,43 +47,9 @@ class SingleChoiceInputView(CallableView):
         if self.cur_index is not None and self.cur_index > len(newoptions):
             self.cur_index = 0
 
-    def _is_ok(self):
-        return True
 
-    def _before_call(self):
-        if self.cur_index is None:
-            self.cur_index = 0
-        arrows = "← →"
-        if self.is_vertical:
-            arrows = "↑ ↓"
-        self._set_status_bar("  ".join(["[↵] Ok", f"[{arrows}] Change selection", "[ctrl-c] Cancel"]))
 
-    def _handle_key(self, c):
-        if c == Key.Break:
-            self.cur_index = None
-            self.update()
-            self.is_active = False
-        elif c == Key.Return:
-            if self._is_ok():
-                self.is_active = False
-        elif (self.is_vertical and c == Key.Up) or (not self.is_vertical and c == Key.Left):
-            if self.cur_index is None:
-                return
-            self.cur_index = max(0, self.cur_index - 1)
-            self.update()
-        elif (self.is_vertical and c == Key.Down) or (not self.is_vertical and c == Key.Right) or c == Key.Tab:
-            if self.cur_index is None:
-                return
-            self.cur_index = min(len(self.options) - 1, self.cur_index + 1)
-            self.update()
-        elif isinstance(c, Key):
-            pass
-        else:
-            pass
 
-    def _get_output(self):
-        if self.cur_index is not None:
-            return str(self.options[self.cur_index])
 
     def _draw_at_horizontal(self, y):
         if y is None:
@@ -253,46 +219,10 @@ class MultipleChoiceInputView(SingleChoiceInputView):
             checked = list()
         self.checked = {str(k): (str(k) in checked) for k in self.options}
 
-    def _before_call(self):
-        if self.cur_index is None:
-            self.cur_index = 0
-        arrows = "← →"
-        if self.is_vertical:
-            arrows = "↑ ↓"
-        self._set_status_bar(
-            "  ".join(
-                [
-                    "[↵] Ok",
-                    "[space] Toggle checked/unchecked",
-                    f"[{arrows}] Change selection",
-                    "[ctrl-c] Cancel",
-                ]
-            )
-        )
 
-    def _handle_key(self, c):
-        if c == ord(" "):
-            if self.cur_index is not None:
-                option_str = str(self.options[self.cur_index])
-                self.checked[option_str] = not self.checked[option_str]
-                self.update()
-        else:
-            super(MultipleChoiceInputView, self)._handle_key(c)
 
-    def _get_output(self):
-        if self.cur_index is not None:
-            return self.checked
 
-    def _render_option(self, option_str):
-        status = " "
-        if self.checked[option_str]:
-            status = "*"
-        return f"[{status}] {option_str}"
 
-    def _color_option(self, option):
-        if self.checked[str(option)]:
-            return self.highlight_color
-        return self.color
 
 
 class CombinedMultipleAndSingleChoiceInputView(MultipleChoiceInputView):
@@ -304,52 +234,10 @@ class CombinedMultipleAndSingleChoiceInputView(MultipleChoiceInputView):
             **kwargs,
         )
 
-    def _before_call(self):
-        if self.cur_index is None:
-            self.cur_index = 0
-        arrows = "← →"
-        if self.is_vertical:
-            arrows = "↑ ↓"
-        self._set_status_bar(
-            "  ".join(
-                [
-                    "[↵] Ok",
-                    "[space] Toggle checked/unchecked",
-                    f"[{arrows}] Change selection",
-                    "[ctrl-c] Cancel",
-                ]
-            )
-        )
 
-    def _handle_key(self, c):
-        if c == ord(" "):
-            if self.cur_index is not None:
-                option_str = str(self.options[self.cur_index])
-                self.checked[option_str] = not self.checked[option_str]
-                self.update()
-        else:
-            super(MultipleChoiceInputView, self)._handle_key(c)
 
-    def _get_output(self):
-        if self.cur_index is not None:
-            option_str = str(self.options[self.cur_index])
-            if option_str in self.single_choice_options:
-                return option_str
-            else:
-                return {k: v for k, v in self.checked.items() if k not in self.single_choice_options}
 
-    def _render_option(self, option_str):
-        if option_str in self.single_choice_options:
-            return f"[{option_str}]"
-        status = " "
-        if self.checked[option_str]:
-            status = "*"
-        return f"[{status}] {option_str}"
 
-    def _color_option(self, option):
-        if self.checked[str(option)]:
-            return self.highlight_color
-        return self.color
 
 
 class MultiSingleChoiceInputView(SingleChoiceInputView):
@@ -374,38 +262,8 @@ class MultiSingleChoiceInputView(SingleChoiceInputView):
                     values[i][j] = TextElement(values[i][j])
         self.values = values
 
-    def _before_call(self):
-        super(MultiSingleChoiceInputView, self)._before_call()
-        if self.selected_indices is None:
-            self.selected_indices = [0] * len(self.options)
-        actions = ["[↵] Ok", "[↑ ↓ ← →] Change selection", "[ctrl-c] Cancel"]
-        self._set_status_bar("  ".join(actions))
 
-    def _handle_key(self, c):
-        if c == Key.Break:
-            self.cur_index = None
-            self.selected_indices = None
-            self.is_active = False
-        elif c == Key.Left:
-            if self.cur_index is not None and self.selected_indices is not None:
-                self.selected_indices[self.cur_index] = max(0, self.selected_indices[self.cur_index] - 1)
-            self.update()
-        elif c == Key.Right:
-            if self.cur_index is not None and self.selected_indices is not None:
-                self.selected_indices[self.cur_index] = min(
-                    len(self.values[self.cur_index]) - 1,
-                    self.selected_indices[self.cur_index] + 1,
-                )
-            self.update()
-        else:
-            super(MultiSingleChoiceInputView, self)._handle_key(c)
 
-    def _get_output(self):
-        if self.selected_indices is not None:
-            return {
-                str(k): str(self.values[i][v])
-                for i, (k, v) in enumerate(zip(self.options, self.selected_indices, strict=False))
-            }
 
     def _draw_option(self, i, y):
         option = self.options[i]
@@ -457,44 +315,8 @@ class MultiMultipleChoiceInputView(MultiSingleChoiceInputView):
 
         self.enforce_unique = enforce_unique
 
-    def _before_call(self):
-        super(MultiSingleChoiceInputView, self)._before_call()
-        if self.cur_col is None:
-            self.cur_col = 0
-        actions = [
-            "[↵] Ok",
-            "[space] Toggle checked/unchecked",
-            "[↑ ↓ ← →] Change selection",
-            "[ctrl-c] Cancel",
-        ]
-        self._set_status_bar("  ".join(actions))
 
-    def _handle_key(self, c):
-        if c == Key.Left:
-            if self.cur_col is not None:
-                self.cur_col = max(0, self.cur_col - 1)
-            self.update()
-        elif c == Key.Right:
-            if self.cur_col is not None:
-                self.cur_col = min(len(self.values[self.cur_index]) - 1, self.cur_col + 1)
-            self.update()
-        elif c == ord(" "):
-            if self.cur_index is not None and self.cur_col is not None:
-                value = str(self.values[self.cur_index][self.cur_col])
-                checked = self.checked[self.cur_index][value]
-                if not checked and self.enforce_unique:
-                    for row in self.checked:
-                        if value in row:
-                            row[value] = False  # disable other active
-                self.checked[self.cur_index][value] = not checked  # toggle value
-                self.update()
-        else:
-            super(MultiSingleChoiceInputView, self)._handle_key(c)
 
-    def _get_output(self) -> list[dict[str, bool]] | None:
-        if self.cur_index is not None:
-            return self.checked
-        return None
 
     def _draw_option(self, i, y):
         option = self.options[i]

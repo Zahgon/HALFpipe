@@ -26,20 +26,6 @@ from ....utils.format import format_like_bids
 from ....utils.multiprocessing import IterationOrder, Pool, make_pool_or_null_context
 
 
-def load_atlas(
-    image_path: Path | str,
-    labels_path: Path | str,
-) -> tuple[dict[int, str], nib.analyze.AnalyzeImage]:
-    image_path = Path(image_path)
-
-    labels_frame = read_spreadsheet(labels_path)
-    labels: dict[int, str] = dict()
-    for label_tuple in labels_frame.itertuples(index=False):
-        # First column is the index, second is the name.
-        labels[int(label_tuple[0])] = format_like_bids(str(label_tuple[1]))
-
-    image = nib.nifti1.load(image_path)
-    return labels, image
 
 
 class Statistic(Enum):
@@ -60,17 +46,8 @@ class ImagePaths:
     dof: Path | None = None
     z: Path | None = None
 
-    @cached_property
-    def effect_image(self) -> nib.analyze.AnalyzeImage:
-        return nib.nifti1.load(self.effect)
 
-    @cached_property
-    def mask_image(self) -> nib.analyze.AnalyzeImage:
-        return nib.nifti1.load(self.mask)
 
-    @property
-    def mask_data(self) -> npt.NDArray[np.bool_]:
-        return np.asanyarray(self.mask_image.dataobj, dtype=bool)
 
     def get_data_image(self, statistic: Statistic) -> tuple[Statistic, nib.analyze.AnalyzeImage]:
         if statistic == Statistic.effect:
@@ -163,16 +140,6 @@ class DiscreteAtlas(Atlas):
 
         return AtlasSignals(signals, np.array(coverage), statistic.name)
 
-    @classmethod
-    def from_args(
-        cls,
-        name: str,
-        statistic: str,
-        image_path: str,
-        labels_path: str,
-    ) -> Self:
-        labels, image = load_atlas(image_path, labels_path)
-        return cls(name, image, labels, Statistic[statistic])
 
 
 @dataclass
@@ -185,15 +152,6 @@ class ProbabilisticAtlas(Atlas):
         signals, coverage = mode_signals(cope_img, var_cope_img, self.image, output_coverage=True)
         return AtlasSignals(signals, coverage)
 
-    @classmethod
-    def from_args(
-        cls,
-        name: str,
-        image_path: str,
-        labels_path: str,
-    ) -> Self:
-        labels, image = load_atlas(image_path, labels_path)
-        return cls(name, image, labels)
 
 
 def export(
@@ -278,8 +236,3 @@ def export(
     return signals_frame, covariate_frame, atlas_coverage_frame
 
 
-def get_signals(
-    atlases: list[Atlas],
-    image_paths: ImagePaths,
-) -> list[AtlasSignals]:
-    return [atlas.apply(image_paths) for atlas in atlases]

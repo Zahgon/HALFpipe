@@ -122,17 +122,7 @@ class WindowTitleBar(Container):
 
     def compose(self) -> ComposeResult:
         """Add our widgets."""
-        yield Static(self.title, classes="window_title")
-        # if self.allow_minimize:
-        #     yield Button(self.MINIMIZE_ICON, classes="window_minimize")
-        if self.allow_maximize:
-            yield Button(self.MAXIMIZE_ICON, classes="window_maximize")
-            restore_button = Button(self.RESTORE_ICON, classes="window_restore")
-            restore_button.display = False
-            yield restore_button
-        close_button = Button(self.CLOSE_ICON, classes="window_close")
-        close_button.can_focus = False
-        yield close_button
+        pass
 
 
 class DraggableModalScreen(ModalScreen):
@@ -220,12 +210,8 @@ class DraggableModalScreen(ModalScreen):
         This method is called when the screen is resized. It updates the
         width of the title bar to match the width of the content container.
         """
-        self.get_widget_by_id("window_title_bar").styles.width = self.get_widget_by_id(
-            "draggable_modal_screen_container_wrapper"
-        ).container_size.width
+        pass
 
-    def compose(self) -> ComposeResult:
-        yield self.content
 
     def on_mouse_move(self, event: events.MouseMove) -> None:
         """
@@ -240,13 +226,7 @@ class DraggableModalScreen(ModalScreen):
         event : events.MouseMove
             The event object containing details about the mouse movement.
         """
-        window = self.get_widget_by_id("draggable_modal_screen_container_wrapper")
-        if self.mouse_at_drag_start is not None:
-            # position of the modal at the drag start + current mouse position - mouse position at drag start
-            window.styles.offset = (
-                self.offset_at_drag_start.x + event.screen_x - self.mouse_at_drag_start.x,
-                self.offset_at_drag_start.y + event.screen_y - self.mouse_at_drag_start.y,
-            )
+        pass
 
     def on_mouse_down(self, event: events.MouseDown) -> None:
         """
@@ -260,22 +240,7 @@ class DraggableModalScreen(ModalScreen):
         event : events.MouseDown
             The event object containing details about the mouse down action.
         """
-        window = self.get_widget_by_id("draggable_modal_screen_container_wrapper")
-        window.focus()
-
-        # what widget is currently at the mouse coursor position and left mouse button is used
-        widget, _ = self.screen.get_widget_at(*event.screen_offset)
-        if widget != self.title_bar.query_one(".window_title") or event.button != 1:
-            return
-
-        # mouse position at drag start
-        self.mouse_at_drag_start = event.screen_offset
-        self.offset_at_drag_start = Offset(
-            int(window.styles.offset.x.value),
-            int(window.styles.offset.y.value),
-        )
-        self.capture_mouse()
-        self.can_focus = False
+        pass
 
     def on_mouse_up(self, event: events.MouseUp) -> None:
         """
@@ -289,9 +254,7 @@ class DraggableModalScreen(ModalScreen):
         event : events.MouseUp
             The event object containing details about the mouse up action.
         """
-        self.mouse_at_drag_start = None
-        self.release_mouse()
-        self.can_focus = True
+        pass
 
     @on(Button.Pressed, ".window_close")
     def windown_close(self):
@@ -301,7 +264,7 @@ class DraggableModalScreen(ModalScreen):
         This method is called when the close button in the title bar is
         pressed. It requests the modal screen to close.
         """
-        self.request_close()
+        pass
 
     def request_close(self):
         """
@@ -309,4 +272,4 @@ class DraggableModalScreen(ModalScreen):
 
         This method dismisses the modal screen.
         """
-        self.dismiss(False)
+        pass

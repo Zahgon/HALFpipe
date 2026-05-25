@@ -26,29 +26,6 @@ class BoldFileSchema(BaseFileSchema):
     tags = fields.Nested(BoldTagsSchema(), dump_default=dict())
     metadata = fields.Nested(BoldMetadataSchema(), dump_default=dict())
 
-    @pre_load
-    def copy_dir_tag_to_metadata(self, in_data, **kwargs):
-        path = Path(in_data["path"])
-
-        # Ensure that the path refers to a specific file that we have access to.
-        if not exists(path):
-            return in_data
-
-        metadata = in_data.get("metadata")
-        if not isinstance(metadata, dict):
-            metadata = dict()
-            in_data["metadata"] = metadata
-
-        tags = in_data.get("tags")
-        if isinstance(tags, dict):
-            direction = tags.get("dir")
-            if isinstance(direction, str):
-                try:
-                    pedir_code = parse_direction_str(direction)
-                    metadata["phase_encoding_direction"] = canonicalize_direction_code(pedir_code, path)
-                except Exception:
-                    logger.warning(f"Could not parse phase encoding direction from tag {direction} for {path}")
-        return in_data
 
 
 class SBRefFileSchema(BoldFileSchema):
@@ -91,10 +68,6 @@ class EventsFileSchema(OneOfSchema):
         ".txt": TxtEventsFileSchema,
     }
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, File):
-            return obj.extension
-        raise Exception("Cannot get obj type for EventsFileSchema")
 
 
 class FuncFileSchema(OneOfSchema):
@@ -106,7 +79,3 @@ class FuncFileSchema(OneOfSchema):
         "events": EventsFileSchema,
     }
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, File):
-            return obj.suffix
-        raise Exception("Cannot get obj type for FuncFileSchema")

@@ -28,39 +28,4 @@ class ExtractFromResultdict(IOBase):
         self._keys = [] if keys is None else keys
         self._aliases = {} if aliases is None else aliases
 
-    def _add_output_traits(self, base):
-        return add_traits(base, self._keys)
 
-    def _list_outputs(self):
-        outputs = self.output_spec().get()
-
-        resultdict_schema = ResultdictSchema()
-        resultdict = resultdict_schema.load(self.inputs.indict)
-        assert isinstance(resultdict, dict)
-
-        outdict = dict()
-
-        for key in self._keys:
-            key_and_aliases = [key]
-            if key in self._aliases:
-                key_and_aliases.extend(self._aliases[key])
-
-            while key not in outdict and len(key_and_aliases) > 0:
-                key_or_alias = key_and_aliases.pop()
-                for v in resultdict.values():
-                    if key_or_alias in v:
-                        outdict[key] = v[key_or_alias]
-                        del v[key_or_alias]
-                        break
-
-        for key in self._keys:
-            if key in outdict:
-                outputs[key] = outdict[key]
-            else:
-                outputs[key] = []
-
-        outputs["tags"] = resultdict.get("tags")
-        outputs["metadata"] = resultdict.get("metadata")
-        outputs["vals"] = resultdict.get("vals")
-
-        return outputs

@@ -7,22 +7,12 @@ import re
 from logging import Filter
 
 
-def set_level(record, levelno=logging.DEBUG):
-    record.levelno = levelno
-    record.levelname = logging.getLevelName(levelno)
 
 
 dtype_pattern = re.compile(r"Changing (.+) dtype from (.+) to (.+)")
 
 
 class DTypeWarningsFilter(Filter):
-    def filter(self, record):
-        message = record.getMessage()
-
-        if dtype_pattern.search(message) is not None:
-            set_level(record, levelno=logging.INFO)
-
-        return True
 
 
 pywarnings_to_ignore: list[str] = []
@@ -52,13 +42,3 @@ class PyWarningsFilter(Filter):
     def __init__(self, name: str = "pywarnings_filter") -> None:
         super().__init__(name=name)
 
-    def filter(self, record):
-        message = record.getMessage()
-
-        if ignore_pattern.search(message):
-            set_level(record, levelno=logging.DEBUG)
-
-        if hide_pattern.search(message):
-            set_level(record, levelno=logging.INFO)
-
-        return True

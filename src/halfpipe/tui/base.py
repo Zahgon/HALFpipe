@@ -96,8 +96,7 @@ class HeaderCloseIcon(Widget):
         event : Click
             The click event object.
         """
-        event.stop()
-        await quit_modal(self)
+        pass
 
     def render(self) -> RenderResult:
         """
@@ -156,18 +155,7 @@ class HeaderHelpIcon(Widget):
         event : Click
             The click event object.
         """
-        event.stop()
-        await self.app.push_screen(
-            Confirm(
-                self.help_string,
-                left_button_text=False,
-                right_button_text="OK",
-                right_button_variant="default",
-                title="Help",
-                id="help_modal",
-                #   classes="confirm_warning",
-            )
-        )
+        pass
 
     def render(self) -> RenderResult:
         """Render the header icon.
@@ -229,8 +217,7 @@ class HeaderSaveIcon(Widget):
         event : Click
             The click event object.
         """
-        event.stop()
-        await self.app.get_widget_by_id("run").on_save_button_pressed()
+        pass
 
 
 class MyHeader(Header):
@@ -240,11 +227,6 @@ class MyHeader(Header):
     This header includes a title, a help icon, and a close icon.
     """
 
-    def compose(self):
-        yield HeaderTitle()
-        yield HeaderSaveIcon(id="save_button")
-        yield HeaderHelpIcon()
-        yield HeaderCloseIcon()
 
 
 class RichImage:
@@ -275,8 +257,6 @@ class ImageContainer(Container):
     def render(self):
         return RichImage()
 
-    def key_escape(self):
-        self.dismiss(False)
 
 
 class Welcome(ModalScreen):
@@ -299,7 +279,7 @@ class Welcome(ModalScreen):
         ComposeResult
             The result of composing the modal.
         """
-        yield ImageContainer(id="welcome_image")
+        pass
 
     def key_escape(self):
         """
@@ -308,7 +288,7 @@ class Welcome(ModalScreen):
         This method is called when the user presses the Escape key. It
         dismisses the modal.
         """
-        self.dismiss(True)
+        pass
 
     def on_click(self, event: events.Click) -> None:
         """
@@ -322,7 +302,7 @@ class Welcome(ModalScreen):
         event : events.Click
             The click event object.
         """
-        self.dismiss(True)
+        pass
 
 
 class MainApp(App):
@@ -436,33 +416,10 @@ The working tab and data tab are now read only! Do not change entries here!",
         ComposeResult
             The result of composing the application layout.
         """
-        yield MyHeader(id="header")
-        with self.tab_manager:
-            with TabPane("Working directory", id="work_dir_tab", classes="tabs"):
-                yield VerticalScroll(WorkDirectory(id="work_dir_content"))
-            with TabPane("Input data", id="input_data_tab", classes="tabs"):
-                yield VerticalScroll(DataInput(id="input_data_content"))
-            with TabPane("General preprocessing settings", id="preprocessing_tab", classes="tabs"):
-                yield VerticalScroll(Preprocessing(id="preprocessing_content"))
-            with TabPane("Features", id="feature_selection_tab", classes="tabs2 -hidden"):
-                yield VerticalScroll(FeatureSelection(id="feature_selection_content"))
-            with TabPane("Group level models", id="models_tab", classes="tabs2 -hidden"):
-                yield VerticalScroll(GroupLevelModelSelection(id="models_content"))
-            with TabPane("Check and run", id="run_tab", classes="tabs"):
-                yield VerticalScroll(Run(id="run"), id="run_content")
-            # with TabPane("Diagnostics", id="diag_tab", classes="tabs"):
-            #     yield VerticalScroll(Diagnostics(), id="diag_content")
-        yield Footer()
+        pass
 
-    def next_tab(self):
-        self.tab_manager.query_one(Tabs).action_next_tab()
 
-    def previous_tab(self):
-        self.tab_manager.query_one(Tabs).action_previous_tab()
 
-    @on(TabbedContent.TabActivated, pane="#run_tab")
-    async def on_run_tab_activated(self) -> None:
-        await self.get_widget_by_id("run").refresh_context()
 
     def on_mount(self) -> None:
         """
@@ -471,13 +428,7 @@ The working tab and data tab are now read only! Do not change entries here!",
         This method is called when the application is mounted. It hides
         some tabs initially and sets the application title and subtitle.
         """
-        # hide these tabs until we have data input and the working folder
-        self.tab_manager.hide_tab("preprocessing_tab")
-        self.tab_manager.hide_tab("feature_selection_tab")
-        self.tab_manager.hide_tab("models_tab")
-
-        self.title = "ENIGMA HALFpipe"
-        self.sub_title = "development version"
+        pass
         # self.push_screen(Welcome(id="welcome_screen"))
 
     @work(exclusive=True, name="show_hidden_tabs_worker")
@@ -525,13 +476,13 @@ The working tab and data tab are now read only! Do not change entries here!",
         tab : str
             The ID of the tab to switch to.
         """
-        self.tab_manager.query_one(Tabs)._activate_tab(self.tab_manager.get_widget_by_id("--content-tab-" + tab))
+        pass
 
     def action_toggle_dark(self) -> None:
         """
         Toggles dark mode.
         """
-        self.dark: bool = not self.dark
+        pass
 
     def action_reload(self):
         """
@@ -539,7 +490,7 @@ The working tab and data tab are now read only! Do not change entries here!",
 
         This method calls `reload_ui` to refresh the UI.
         """
-        self.reload_ui()
+        pass
 
     def reload_ui(self, complete_reset=True) -> None:
         """
@@ -556,46 +507,5 @@ The working tab and data tab are now read only! Do not change entries here!",
             Whether to perform a complete reset of the context, by
             default True.
         """
-        self.get_widget_by_id("input_data_content").refresh(recompose=True, layout=True)
-        self.get_widget_by_id("feature_selection_content").refresh(recompose=True, layout=True)
-        self.get_widget_by_id("models_content").refresh(recompose=True, layout=True)
-        self.get_widget_by_id("preprocessing_content").refresh(recompose=True, layout=True)
-        self.flags_to_show_tabs["from_working_dir_tab"] = False
-        self.flags_to_show_tabs["from_input_data_tab"] = False
-        self.tab_manager.hide_tab("preprocessing_tab")
-        self.tab_manager.hide_tab("feature_selection_tab")
-        self.tab_manager.hide_tab("models_tab")
+        pass
 
-        if complete_reset is True:
-            self.get_widget_by_id("input_data_content").refresh(recompose=True, layout=True)
-            self.get_widget_by_id("work_dir_content").refresh(recompose=True, layout=True)
-
-        feature_selection_content = self.app.get_widget_by_id("feature_selection_tab").get_widget_by_id(
-            "feature_selection_content"
-        )
-        feature_selection_content.feature_items.clear()
-        model_selection_content = self.app.get_widget_by_id("models_tab").get_widget_by_id("models_content")
-        model_selection_content.feature_items.clear()
-
-        ctx.database.filepaths_by_tags.clear()
-        ctx.database.tags_by_filepaths.clear()
-        ctx.spec.features.clear()
-        ctx.spec.settings.clear()
-        ctx.spec.models.clear()
-        ctx.spec.files.clear()
-        ctx.cache.clear()
-        ctx.available_images = {}
-        FilePanelTemplate.reset_all_counters()
-
-        # # set global settings to defaults use the defaults dictionary at preprocessing_content widget
-        # for key in self.get_widget_by_id("preprocessing_content").default_settings:
-        #     ctx.spec.global_settings[key] = self.get_widget_by_id("preprocessing_content").default_settings[key]
-        ctx.spec.global_settings["dummy_scans"] = self._global_settings_defaults["dummy_scans"]
-        ctx.spec.global_settings["run_reconall"] = self._global_settings_defaults["run_reconall"]
-        ctx.spec.global_settings["slice_timing"] = self._global_settings_defaults["slice_timing"]
-
-    async def on_key(self, event: events.Key) -> None:
-        if event.key == "ctrl+q":
-            await quit_modal(self)
-        elif event.key == "ctrl+s":
-            self.app.save_screenshot()

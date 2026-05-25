@@ -133,9 +133,7 @@ class Confirm(DraggableModalScreen):
         This method is called when the modal is resized. It adjusts the
         width of the message widget to fit within the modal's container.
         """
-        self.message_widget.styles.width = (
-            self.get_widget_by_id("draggable_modal_screen_container_wrapper").container_size.width - 2
-        )
+        pass
 
     def on_mount(self) -> None:
         """
@@ -144,13 +142,7 @@ class Confirm(DraggableModalScreen):
         This method is called when the modal is mounted. It sets up the
         layout by adding the message widget and action buttons.
         """
-        self.content.mount(
-            self.message_widget,
-            Horizontal(
-                *self.buttons,
-                classes="button_grid",
-            ),
-        )
+        pass
 
     @on(Button.Pressed, ".button_grid .ok")
     def ok(self):
@@ -160,7 +152,7 @@ class Confirm(DraggableModalScreen):
         This method is called when the user presses the "Ok" button. It
         calls `_confirm_window` to dismiss the modal with a value of True.
         """
-        self._confirm_window()
+        pass
 
     @on(Button.Pressed, ".button_grid .cancel")
     def cancel(self):
@@ -188,7 +180,7 @@ class Confirm(DraggableModalScreen):
         It calls `request_close` to dismiss the modal with a value of
         False.
         """
-        self.dismiss(None)
+        pass
 
     def key_escape(self):
         """
@@ -198,7 +190,7 @@ class Confirm(DraggableModalScreen):
         calls `request_close` to dismiss the modal with a value of
         False.
         """
-        self.request_close()
+        pass
 
     def _confirm_window(self):
         """
@@ -207,7 +199,7 @@ class Confirm(DraggableModalScreen):
         This method is called when the user confirms the action. It
         dismisses the modal with a value of True.
         """
-        self.dismiss(True)
+        pass
 
     def request_close(self):
         """
@@ -217,14 +209,7 @@ class Confirm(DraggableModalScreen):
         window. It dismisses the modal with a value of True or False
         depending on the active button.
         """
-        # Clicking on the 'X' in the draggable window bar, escape key and the close button must always yield the same dismiss
-        # value!
-        if self.active_index == 0:  # default button is the 'Ok' button
-            self.dismiss(True)
-        elif self.extra_button:
-            self.dismiss(None)
-        else:  # default button is the 'Cancel' button or we have bot buttons
-            self.dismiss(False)
+        pass
 
 
 class SimpleMessageModal(Confirm):

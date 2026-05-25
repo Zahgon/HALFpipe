@@ -26,22 +26,6 @@ has_sidecar_keys: frozenset[str] = frozenset(["effect", "reho", "falff", "alff",
 has_sidecar_extensions: frozenset[str] = frozenset([".nii", ".nii.gz", ".tsv"])
 
 
-def _from_bids_derivatives(tags: Mapping[str, str | None]) -> str | None:
-    suffix = tags["suffix"]
-    if suffix in ["boldmap", "statmap"]:
-        if "stat" not in tags:
-            return None
-
-        stat = tags["stat"]
-
-        if "algorithm" in tags:
-            algorithm = tags["algorithm"]
-            if algorithm in ["mcar"]:
-                return f"{algorithm}{stat}"
-
-        return stat
-
-    return suffix
 
 
 def _to_bids_derivatives(key: str, inpath: Path, tags: dict[str, str]) -> Path:
@@ -68,44 +52,6 @@ def _to_bids_derivatives(key: str, inpath: Path, tags: dict[str, str]) -> Path:
         return make_bids_path(inpath, "image", tags, suffix=key)
 
 
-def _load_result(file_index: FileIndex, tags: Mapping[str, str | None]) -> ResultDict | None:
-    paths = file_index.get(**tags)
-    if paths is None or len(paths) == 0:
-        return None
-
-    result: ResultDict = defaultdict(dict)
-    result["tags"] = {key: value for key, value in tags.items() if value is not None}
-
-    for path in paths:
-        if path.suffix == ".json":
-            metadata, vals = load_sidecar(path)
-            result["metadata"].update(metadata)
-            result["vals"].update(vals)
-            continue
-        elif path.suffix in {".html"}:
-            continue
-
-        if isinstance(path, Path):
-            if path.stat(follow_symlinks=True).st_size == 0:
-                logger.warning(f'Skipping empty file "{path}"')
-                continue
-
-        key = _from_bids_derivatives(file_index.get_tags(path))
-        if key is None:
-            continue
-
-        result["images"][key] = path
-
-    if not has_sidecar_keys.isdisjoint(result["images"].keys()):
-        if len(result["metadata"]) == 0 and len(result["vals"]) == 0:
-            image_files = [str(image_file) for image_file in result["images"].values()]
-            extensions = {split_ext(image_file)[-1] for image_file in image_files}
-            if not extensions.isdisjoint(has_sidecar_extensions):
-                logger.warning(
-                    f"Could not find metadata for files {image_files}. Check if the `.json` sidecar files are present."
-                )
-
-    return dict(result)
 
 
 def load_images(file_index: FileIndex, num_threads: int = 1) -> list[ResultDict]:

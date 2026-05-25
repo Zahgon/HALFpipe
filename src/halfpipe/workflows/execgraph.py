@@ -186,19 +186,6 @@ def split_flat_graph(flat_graph: nx.DiGraph, base_dir: str) -> tuple[dict[str, s
     return subject_nodes, input_source_dict
 
 
-def prepare_graph(config, base_dir, uuid, graph):
-    graph = pe.generate_expanded_graph(graph)
-
-    for index, node in enumerate(graph):
-        node.config = merge_dict(deepcopy(config), node.config)
-        node.base_dir = base_dir
-        node.index = index
-
-    empty_workflow = pe.Workflow(name="empty")
-    empty_workflow._configure_exec_nodes(graph)  # self is not accessed
-    graph.uuid = uuid
-
-    return graph
 
 
 def init_flat_graph(workflow, workdir) -> nx.DiGraph:

@@ -64,9 +64,6 @@ class FileBrowser(Widget):
         file_browser: "FileBrowser"
         selected_path: str
 
-        @property
-        def control(self):
-            return self.file_browser
 
     # def watch_selected_path(self) -> None:
     #     self.post_message(self.Changed(self, self.selected_path))
@@ -113,9 +110,7 @@ class FileBrowser(Widget):
         ComposeResult
             The composed widgets.
         """
-        with Horizontal(id="file_browser"):
-            yield Button("Browse", id="file_browser_edit_button", classes="button")
-            yield Label(self.path_to + ":", id="path_input_box")
+        pass
 
     @on(Button.Pressed, "#file_browser_edit_button")
     def on_button_pressed(self, event) -> None:
@@ -125,8 +120,7 @@ class FileBrowser(Widget):
         This method is called when the user presses the "Browse" button.
         It calls `open_browse_window` to open the file browser modal.
         """
-        if "-read-only" not in event.control.classes:
-            self.open_browse_window()
+        pass
 
     def open_browse_window(self) -> None:
         """
@@ -135,9 +129,7 @@ class FileBrowser(Widget):
         This method pushes the `FileBrowserModal` onto the screen to allow
         the user to browse and select a file or directory.
         """
-        self.app.push_screen(
-            FileBrowserModal(title=self.modal_title, path_test_function=self.path_test_function), self.update_input
-        )
+        pass
 
     @on(Input.Submitted, "#path_input_box")
     def update_from_input(self) -> None:
@@ -148,8 +140,7 @@ class FileBrowser(Widget):
         input box. It calls `update_input` to update the UI with the new
         path.
         """
-        self.update_input(self.get_widget_by_id("path_input_box").value)
-        self.post_message(self.Changed(self, self.selected_path))
+        pass
 
     def update_input(self, selected_path: str, send_message: bool = True) -> None:
         """
@@ -244,6 +235,4 @@ class FileBrowserForBIDS(FileBrowser):
         parent class to use the `path_test_for_bids` function for
         validating the selected path.
         """
-        self.app.push_screen(
-            FileBrowserModal(title=self.modal_title, path_test_function=path_test_for_bids), self.update_input
-        )
+        pass

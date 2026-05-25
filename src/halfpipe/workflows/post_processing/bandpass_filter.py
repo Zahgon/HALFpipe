@@ -12,44 +12,10 @@ from ...interfaces.utility.afni import FromAFNI, ToAFNI
 from ..memory import MemoryCalculator
 
 
-def _calc_sigma(
-    lp_width: float | None = None,
-    hp_width: float | None = None,
-    repetition_time: float | None = None,
-):
-    lp_sigma = None
-    hp_sigma = None
-
-    if lp_width is not None or hp_width is not None:
-        if not isinstance(repetition_time, float):
-            raise ValueError(f'Invalid repetition time "{repetition_time}" ({type(repetition_time)})')
-        if lp_width is not None:
-            lp_sigma = lp_width / (2.0 * repetition_time)
-        if hp_width is not None:
-            hp_sigma = hp_width / (2.0 * repetition_time)
-
-    return lp_sigma, hp_sigma
 
 
-def _out_file_name(in_file) -> str:
-    from halfpipe.utils.path import split_ext
-
-    stem, ext = split_ext(in_file)
-    return f"{stem}_tproject{ext}"
 
 
-def _bandpass_arg(low, high) -> str:
-    low, high = float(low), float(high)
-
-    # constants taken from https://github.com/afni/afni/blob/master/src/3dTproject.c#L1312-L1313
-    if low < 0 and high < 0:
-        return ""  # only remove selected confounds
-    elif high < 0:
-        return f"-stopband 0 {low - 0.0001:f}"
-    elif low < 0:
-        return f"-stopband {high + 0.0001:f} 999999.9"
-    else:
-        return f"-passband {low:f} {high:f}"
 
 
 BandpassFilterTuple = tuple[str, float | None, float | None]

@@ -287,18 +287,7 @@ class FeatureTemplate(Widget):
         application. It sets the border titles for the input box, tag
         selection list, and file panel.
         """
-        if self.images_to_use is not None:
-            # Since there are now always only 'Tasks' in Features, we can name the panel 'Tasks to use', instead of
-            # 'Images to Use'
-            self.get_widget_by_id("tasks_to_use_selection_panel").border_title = "Select tasks"
-        self.get_widget_by_id("confounds_selection").border_title = "Remove confounds"
-        self.get_widget_by_id("preprocessing").border_title = "Preprocessing settings"
-        if self.get_widget_by_id("bandpass_filter_type").switch_value is False:
-            self.get_widget_by_id("bandpass_filter_lp_width").styles.visibility = "hidden"
-            self.get_widget_by_id("bandpass_filter_hp_width").styles.visibility = "hidden"
-            self.get_widget_by_id("bandpass_filter_lp_width").switch_value = False
-            self.get_widget_by_id("bandpass_filter_hp_width").switch_value = False
-        self.update_dataline()
+        pass
 
     @on(SelectionList.SelectedChanged, "#tasks_to_use_selection")
     def _on_selection_list_changed(self, message) -> None:
@@ -314,13 +303,7 @@ class FeatureTemplate(Widget):
         message : SelectionList.SelectedChanged
             The message object containing information about the change.
         """
-        # Since now we are using only tasks, the loop might not be neccessery, because there is now only one selection and that
-        # is the 'task'. Before there were also sessions, dirs, runs. The  message.control.id[:-18] extracts the string 'task'
-        # from 'tasks_to_use_selection' to match the particular entry in the filters.
-        for f in self.setting_dict["filters"]:
-            if f["entity"] == message.control.id[:-18]:
-                f["values"] = self.get_widget_by_id(message.control.id).selected
-        self.update_dataline()
+        pass
 
     def update_dataline(self) -> None:
         """
@@ -329,36 +312,7 @@ class FeatureTemplate(Widget):
         This method updates the data line with the current selection of
         tasks and other settings.
         """
-        bold_summary_step = BoldSummaryStep()
-        bold_summary = bold_summary_step.get_summary
-        bold_summary_task_filtered = {}
-        filepaths = ctx.database.applyfilters(set(bold_summary["files"]), self.setting_dict.get("filters"))
-        bold_summary_task_filtered["files"] = filepaths
-        n_by_tag = bold_summary["n_by_tag"]
-        number_of_currently_selected_tasks = self.get_widget_by_id("tasks_to_use_selection").selected
-
-        if isinstance(n_by_tag, dict):  # Ensure n_by_tag is a dictionary
-            for tag in n_by_tag.keys():
-                if tag == "task":
-                    n_by_tag[tag] = len(number_of_currently_selected_tasks)
-
-            tagmessages = [
-                p.inflect(f"{n} plural('{entity_display_aliases.get(tagname, tagname)}', {n})")
-                for tagname, n in n_by_tag.items()
-                if n > 0
-            ]
-            filetype = "BOLD image"
-            message = p.inflect(f"Found {len(filepaths)} {filetype} plural('file', {len(filepaths)})")
-            message += " "
-            message += "for"
-            message += " "
-            message += p.join(tagmessages)
-
-            bold_summary_task_filtered["message"] = message
-
-            self.get_widget_by_id("feedback_task_filtered_bold").update_summary(bold_summary_task_filtered)
-        else:
-            raise Exception("Something went wrong, n_by_tag is not a dictionary!")
+        pass
 
     @on(SwitchWithSelect.SwitchChanged, "#bandpass_filter_type")
     def _on_bandpass_filter_type_switch_changed(self, message):
@@ -375,39 +329,7 @@ class FeatureTemplate(Widget):
         message : SwitchWithSelect.SwitchChanged
             The message object containing information about the change.
         """
-        # This serves for on/off of the bandpass filter. When Off, we need to hide some widgets, the opposite when On.
-        # There is a special case when filter was Off and the feature was duplicated, then after turning it on we need to pass
-        # some default values to the lp and hp widgets.
-        if message.switch_value is True:
-            self.get_widget_by_id("bandpass_filter_lp_width").styles.visibility = "visible"
-            self.get_widget_by_id("bandpass_filter_hp_width").styles.visibility = "visible"
-            self.get_widget_by_id("bandpass_filter_lp_width").get_widget_by_id(
-                "input_switch_input_box"
-            ).styles.visibility = "visible"
-            self.get_widget_by_id("bandpass_filter_hp_width").get_widget_by_id(
-                "input_switch_input_box"
-            ).styles.visibility = "visible"
-            self.get_widget_by_id("preprocessing").styles.height = 33
-            self.get_widget_by_id("confounds_selection").styles.offset = (0, 0)
-            self.setting_dict["bandpass_filter"] = self.temp_bandpass_filter_selection
-            # pass some default values to lp and hp widgets using this function
-            self.set_bandpass_filter_values_after_toggle(message.control.value)
-        else:
-            self.get_widget_by_id("bandpass_filter_lp_width").styles.visibility = "hidden"
-            self.get_widget_by_id("bandpass_filter_hp_width").styles.visibility = "hidden"
-            # The visibility of the input box of SwitchWithInputBox widget is on mount set by presence of string,
-            # since a string can be passed as a default value, we need to also override the input_switch_input_box subwidget
-            # of the SwitchWithInputBox widget
-            self.get_widget_by_id("bandpass_filter_lp_width").get_widget_by_id(
-                "input_switch_input_box"
-            ).styles.visibility = "hidden"
-            self.get_widget_by_id("bandpass_filter_hp_width").get_widget_by_id(
-                "input_switch_input_box"
-            ).styles.visibility = "hidden"
-            self.get_widget_by_id("preprocessing").styles.height = 27
-            self.get_widget_by_id("confounds_selection").styles.offset = (0, -6)
-            self.temp_bandpass_filter_selection = copy.deepcopy(self.setting_dict["bandpass_filter"])
-            self.setting_dict["bandpass_filter"]["type"] = None
+        pass
 
     @on(SwitchWithSelect.Changed, "#bandpass_filter_type")
     def _on_bandpass_filter_type_changed(self, message) -> None:
@@ -424,9 +346,7 @@ class FeatureTemplate(Widget):
         message : SwitchWithSelect.Changed
             The message object containing information about the change.
         """
-        bandpass_filter_type = message.value
-        if message.control.switch_value is True:
-            self.set_bandpass_filter_values_after_toggle(bandpass_filter_type)
+        pass
 
     def set_bandpass_filter_values_after_toggle(self, bandpass_filter_type) -> None:
         """
@@ -443,69 +363,7 @@ class FeatureTemplate(Widget):
             The selected bandpass filter type ("gaussian" or
             "frequency_based").
         """
-        if bandpass_filter_type == "frequency_based":
-            lowest_value = (
-                self.setting_dict["bandpass_filter"]["low"]
-                if "low" in self.setting_dict["bandpass_filter"] and self.setting_dict["bandpass_filter"]["low"] is None
-                else str(self.setting_dict["bandpass_filter"]["low"])
-                if "low" in self.setting_dict["bandpass_filter"]
-                else self._bandpass_filter_defaults["frequency_based"]["low"]
-            )
-            highest_value = (
-                self.setting_dict["bandpass_filter"]["high"]
-                if "high" in self.setting_dict["bandpass_filter"] and self.setting_dict["bandpass_filter"]["high"] is None
-                else str(self.setting_dict["bandpass_filter"]["high"])
-                if "high" in self.setting_dict["bandpass_filter"]
-                else self._bandpass_filter_defaults["frequency_based"]["high"]
-            )
-
-            self.get_widget_by_id("bandpass_filter_lp_width").update_label("Low-pass temporal filter width \n(in Hertz)")
-            self.get_widget_by_id("bandpass_filter_hp_width").update_label("High-pass temporal filter width \n(in Hertz)")
-            # set defaults on toggle
-            self.get_widget_by_id("bandpass_filter_lp_width").update_value(lowest_value if lowest_value is not None else "")
-            self.get_widget_by_id("bandpass_filter_lp_width").update_switch_value(lowest_value is not None)
-            self.get_widget_by_id("bandpass_filter_hp_width").update_value(highest_value if highest_value is not None else "")
-            self.get_widget_by_id("bandpass_filter_hp_width").update_switch_value(highest_value is not None)
-            self.setting_dict["bandpass_filter"]["low"] = lowest_value
-            self.setting_dict["bandpass_filter"]["high"] = highest_value
-            self.setting_dict["bandpass_filter"].pop("lp_width", None)
-            self.setting_dict["bandpass_filter"].pop("hp_width", None)
-        elif bandpass_filter_type == "gaussian":
-            lowest_value = (
-                self.setting_dict["bandpass_filter"]["lp_width"]
-                if "lp_width" in self.setting_dict["bandpass_filter"]
-                and self.setting_dict["bandpass_filter"]["lp_width"] is None
-                else str(self.setting_dict["bandpass_filter"]["lp_width"])
-                if "lp_width" in self.setting_dict["bandpass_filter"]
-                else self._bandpass_filter_defaults["gaussian"]["lp_width"]
-            )
-            highest_value = (
-                self.setting_dict["bandpass_filter"]["hp_width"]
-                if "hp_width" in self.setting_dict["bandpass_filter"]
-                and self.setting_dict["bandpass_filter"]["hp_width"] is None
-                else str(self.setting_dict["bandpass_filter"]["hp_width"])
-                if "hp_width" in self.setting_dict["bandpass_filter"]
-                else self._bandpass_filter_defaults["gaussian"]["hp_width"]
-            )
-
-            self.get_widget_by_id("bandpass_filter_lp_width").update_label("Low-pass temporal filter width \n(in seconds)")
-            self.get_widget_by_id("bandpass_filter_hp_width").update_label("High-pass temporal filter width \n(in seconds)")
-            # set defaults on toggle
-            self.get_widget_by_id("bandpass_filter_lp_width").update_value(lowest_value if lowest_value is not None else "")
-            self.get_widget_by_id("bandpass_filter_lp_width").update_switch_value(lowest_value is not None)
-            self.get_widget_by_id("bandpass_filter_hp_width").update_value(highest_value if highest_value is not None else "")
-            self.get_widget_by_id("bandpass_filter_hp_width").update_switch_value(highest_value is not None)
-            # on mount the app also runs through this part and since 'frequency_based' was never set, the low and high
-            # do not exist
-            if "low" in self.setting_dict["bandpass_filter"]:
-                self.setting_dict["bandpass_filter"]["lp_width"] = lowest_value
-                self.setting_dict["bandpass_filter"]["hp_width"] = highest_value
-                # self.setting_dict["bandpass_filter"]["lp_width"] = self.setting_dict["bandpass_filter"]["low"]
-                # self.setting_dict["bandpass_filter"]["hp_width"] = self.setting_dict["bandpass_filter"]["high"]
-                self.setting_dict["bandpass_filter"].pop("low", None)
-                self.setting_dict["bandpass_filter"].pop("high", None)
-
-        self.setting_dict["bandpass_filter"]["type"] = bandpass_filter_type
+        pass
 
     @on(SwitchWithInputBox.Changed, "#grand_mean_scaling")
     def _on_grand_mean_scaling_changed(self, message: Message) -> None:
@@ -521,7 +379,7 @@ class FeatureTemplate(Widget):
         message : SwitchWithInputBox.Changed
             The message object containing information about the change.
         """
-        self.setting_dict["grand_mean_scaling"]["mean"] = message.value if message.value != "" else None
+        pass
 
     @on(SwitchWithInputBox.SwitchChanged, "#grand_mean_scaling")
     def _on_grand_mean_scaling_switch_changed(self, message: Message) -> None:
@@ -538,45 +396,27 @@ class FeatureTemplate(Widget):
         message : SwitchWithInputBox.SwitchChanged
             The message object containing information about the change.
         """
-        switch_value = message.switch_value
-        last_value = message.control.value
-        if switch_value is False:
-            self.setting_dict["grand_mean_scaling"]["mean"] = None
-        else:
-            self.setting_dict["grand_mean_scaling"]["mean"] = last_value
+        pass
 
     def _update_bandpass_filter_setting(self, control, switch_value, value=None):
         """
         Shared logic for updating bandpass filter settings.
         """
-        the_id = control.id.replace("bandpass_filter_", "")
-        if self.setting_dict["bandpass_filter"]["type"] == "frequency_based":
-            mapping = {"lp_width": "low", "hp_width": "high"}
-            the_id = mapping.get(the_id)
-
-        # Update based on switch state
-        if switch_value:
-            self.setting_dict["bandpass_filter"][the_id] = value if value != "" else None
-        else:
-            self.setting_dict["bandpass_filter"][the_id] = None
+        pass
 
     @on(SwitchWithInputBox.Changed, ".bandpass_filter_values")
     def _on_bandpass_filter_xp_width_changed(self, message: Message) -> None:
         """
         Handles value changes in bandpass filter input box.
         """
-        self._update_bandpass_filter_setting(
-            control=message.control, switch_value=message.control.switch_value, value=message.value
-        )
+        pass
 
     @on(SwitchWithInputBox.SwitchChanged, ".bandpass_filter_values")
     def _on_bandpass_filter_xp_width_switch_changed(self, message: Message) -> None:
         """
         Handles switch state changes in bandpass filter input box.
         """
-        self._update_bandpass_filter_setting(
-            control=message.control, switch_value=message.switch_value, value=message.control.value
-        )
+        pass
 
     def _update_smoothing_setting(self, switch_value: bool, value: str | None) -> None:
         """
@@ -589,26 +429,21 @@ class FeatureTemplate(Widget):
         value : str | None
             The current smoothing value from the input box.
         """
-        if switch_value:
-            # Switch is ON → set value
-            self.setting_dict["smoothing"]["fwhm"] = value if value != "" else None
-        else:
-            # Switch is OFF → clear value
-            self.setting_dict["smoothing"]["fwhm"] = None
+        pass
 
     @on(SwitchWithInputBox.Changed, "#smoothing")
     def _on_smoothing_changed(self, message: Message) -> None:
         """
         Handles input value changes in the smoothing control.
         """
-        self._update_smoothing_setting(switch_value=message.control.switch_value, value=message.value)
+        pass
 
     @on(SwitchWithInputBox.SwitchChanged, "#smoothing")
     def _on_smoothing_switch_changed(self, message: Message) -> None:
         """
         Handles switch state changes in the smoothing control.
         """
-        self._update_smoothing_setting(switch_value=message.switch_value, value=message.control.value)
+        pass
 
     @on(SelectionList.SelectedChanged, "#confounds_selection")
     def feed_feature_dict_confounds(self) -> None:
@@ -619,15 +454,7 @@ class FeatureTemplate(Widget):
         widget with the ID "confounds_selection" changes. It updates the
         `setting_dict` with the selected confounds.
         """
-        confounds = self.get_widget_by_id("confounds_selection").selected.copy()
-        # "ICA-AROMA" is in a separate field, so here this is taken care of
-        if "ICA-AROMA" in self.get_widget_by_id("confounds_selection").selected:
-            confounds.remove("ICA-AROMA")
-            self.setting_dict["ica_aroma"] = True
-        else:
-            self.setting_dict["ica_aroma"] = False
-
-        self.setting_dict["confounds_removal"] = confounds
+        pass
 
     #############################
     #
@@ -653,8 +480,5 @@ class FeatureTemplate(Widget):
         selection_list : SelectionList
             The selection list widget.
         """
-        self.feature_dict[self.featurefield] = message.value
+        pass
 
-    @on(Select.Changed, "#space_selection")
-    def on_keep_selection_changed(self, message: Message):
-        self.setting_dict["space"] = message.value

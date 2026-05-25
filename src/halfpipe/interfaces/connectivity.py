@@ -50,43 +50,4 @@ class ConnectivityMeasure(BaseInterface):
     input_spec = ConnectivityMeasureInputSpec
     output_spec = ConnectivityMeasureOutputSpec
 
-    def _run_interface(self, runtime: Bunch) -> Bunch:
-        in_img = nib.nifti1.load(self.inputs.in_file)
-        atlas_img = nib.nifti1.load(self.inputs.atlas_file)
-        mask_img = nib.nifti1.load(self.inputs.mask_file)
 
-        self._time_series, self._region_coverage = mean_signals(
-            in_img,
-            atlas_img,
-            output_coverage=True,
-            mask_image=mask_img,
-            background_label=self.inputs.background_label,
-            min_region_coverage=self.inputs.min_region_coverage,
-        )
-
-        df: pd.DataFrame = pd.DataFrame(self._time_series)
-
-        self._cov_mat = df.cov().values
-        self._corr_mat = df.corr().values
-
-        return runtime
-
-    def _list_outputs(self):
-        outputs = self.output_spec().get()
-
-        time_series_file = op.abspath("timeseries.tsv")
-        np.savetxt(time_series_file, self._time_series, **savetxt_argdict)
-
-        covariance_file = op.abspath("covariance.tsv")
-        np.savetxt(covariance_file, self._cov_mat, **savetxt_argdict)
-
-        correlation_file = op.abspath("correlation.tsv")
-        np.savetxt(correlation_file, self._corr_mat, **savetxt_argdict)
-
-        outputs["time_series"] = time_series_file
-        outputs["covariance"] = covariance_file
-        outputs["correlation"] = correlation_file
-
-        outputs["region_coverage"] = self._region_coverage
-
-        return outputs

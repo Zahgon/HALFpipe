@@ -187,13 +187,7 @@ class ModelTemplate(Widget):
         application. It sets the border titles for the selection lists and panels.
         It also hides the fd cutoff filter widgets if the cutoff switch is off.
         """
-        if self.tasks_to_use is not None:
-            self.get_widget_by_id("tasks_to_use_selection").border_title = "Features to use"
-            self.get_widget_by_id("top_aggregate_panel").border_title = "Aggregate"
-
-        self.get_widget_by_id("cutoff_panel").border_title = "Cutoffs"
-        if not self.get_widget_by_id("exclude_subjects").value:
-            self.hide_fd_filters()
+        pass
 
     def _on_cutoff_fd_mean_input_changed(self, message: Input.Changed) -> None:
         """
@@ -208,9 +202,7 @@ class ModelTemplate(Widget):
         message : Input.Changed
             The message object containing information about the change.
         """
-        for f in self.model_dict["filters"]:
-            if f.get("field") == "fd_mean":
-                f["cutoff"] = message.value
+        pass
 
     @on(Input.Changed, "#cutoff_fd_perc")
     def _on_cutoff_fd_perc_input_changed(self, message: Input.Changed) -> None:
@@ -226,9 +218,7 @@ class ModelTemplate(Widget):
         message : Input.Changed
             The message object containing information about the change.
         """
-        for f in self.model_dict["filters"]:
-            if f.get("field") == "fd_perc":
-                f["cutoff"] = message.value
+        pass
 
     @on(Switch.Changed, "#exclude_subjects")
     def on_exclude_subjects_switch_changed(self, message: Switch.Changed) -> None:
@@ -245,13 +235,7 @@ class ModelTemplate(Widget):
         message : Switch.Changed
             The message object containing information about the change.
         """
-        if message.value is True:
-            self.model_dict["filters"].extend(self.default_cutoff_filter_values)
-            self.get_widget_by_id("cutoff_fd_mean_panel").styles.visibility = "visible"
-            self.get_widget_by_id("cutoff_fd_perc_panel").styles.visibility = "visible"
-            self.get_widget_by_id("cutoff_panel").styles.height = "auto"
-        else:
-            self.hide_fd_filters()
+        pass
 
     def hide_fd_filters(self):
         """
@@ -260,10 +244,7 @@ class ModelTemplate(Widget):
         This method hides the fd mean and percentage cutoff filter widgets and
         removes the corresponding filters from the `model_dict`.
         """
-        self.model_dict["filters"] = [f for f in self.model_dict["filters"] if f["type"] != "cutoff"]
-        self.get_widget_by_id("cutoff_fd_mean_panel").styles.visibility = "hidden"
-        self.get_widget_by_id("cutoff_fd_perc_panel").styles.visibility = "hidden"
-        self.get_widget_by_id("cutoff_panel").styles.height = 7
+        pass
 
     @on(SelectionList.SelectionToggled, "#tasks_to_use_selection")
     def _on_tasks_to_use_selection_changed(self, message) -> None:
@@ -280,18 +261,7 @@ class ModelTemplate(Widget):
         message : SelectionList.SelectionToggled
             The message object containing information about the change.
         """
-        if len(self.get_widget_by_id(message.control.id).selected) == 0:
-            self.app.push_screen(
-                Confirm(
-                    "You must selected at least one task!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="No images!",
-                    classes="confirm_error",
-                )
-            )
-            self.get_widget_by_id(message.control.id).select(message.selection)
+        pass
 
     @on(SelectionList.SelectedChanged, "#tasks_to_use_selection")
     @on(SelectionList.SelectedChanged, "#aggregate_selection_list")
@@ -311,46 +281,4 @@ class ModelTemplate(Widget):
         message : SelectionList.SelectedChanged
             The message object containing information about the change.
         """
-        # We need to run this function also in case when the Task selection is changed because this influence also the models
-        # that are aggregated and at the end which models are aggregated.
-        self.model_dict["inputs"] = self.get_widget_by_id("tasks_to_use_selection").selected
-
-        tasks_to_aggregate = self.get_widget_by_id("tasks_to_use_selection").selected
-        entities_to_aggregate_over = self.get_widget_by_id("aggregate_selection_list").selected
-
-        # Sort aggregate selection to ensure proper order
-        entities_to_aggregate_over_sorted = sorted(entities_to_aggregate_over, key=lambda x: aggregate_order.index(x))
-
-        if entities_to_aggregate_over != []:
-            # aggregate_label_list = []
-            models: list = []
-            # We empty the input list because now all inputs are the tops of the whole aggregate hierarchy. So we append the
-            # first aggregate labels to the input list of the model.
-            self.model_dict["inputs"] = []
-            for task_name in tasks_to_aggregate:
-                aggregate_label = ""
-                if entities_to_aggregate_over_sorted != []:
-                    for aggregate_entity in entities_to_aggregate_over_sorted:
-                        if aggregate_label == "":
-                            previous_name = task_name
-                            aggregate_label = (
-                                "aggregate" + task_name.capitalize() + "Across" + entity_label_dict[aggregate_entity]
-                            )
-                        else:
-                            aggregate_label = models[-1]["name"] + "Then" + entity_label_dict[aggregate_entity]
-                            previous_name = models[-1]["name"]
-                        models.append(
-                            {
-                                "name": aggregate_label,
-                                "inputs": [previous_name],
-                                "filters": [],
-                                "type": "fe",
-                                "across": aggregate_entity,
-                            }
-                        )
-                        # Use last label for the input field
-                        if aggregate_entity == entities_to_aggregate_over_sorted[-1]:
-                            self.model_dict["inputs"].append(aggregate_label)
-
-            dummy_cache_key = self.model_dict["name"] + "__aggregate_models_list"
-            ctx.cache[dummy_cache_key]["models"] = {"aggregate_models_list": models}
+        pass

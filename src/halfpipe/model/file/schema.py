@@ -27,7 +27,3 @@ class FileSchema(OneOfSchema):
         "spreadsheet": SpreadsheetFileSchema,
     }
 
-    def get_obj_type(self, obj):
-        if isinstance(obj, File):
-            return obj.datatype
-        raise Exception("Cannot get obj type for FileSchema")

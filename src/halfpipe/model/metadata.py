@@ -44,9 +44,6 @@ class BaseMetadataSchema(Schema):
     class Meta:
         unknown = EXCLUDE
 
-    @pre_load
-    def underscore_fields(self, in_data, **_):
-        return {underscore(k): v for k, v in in_data.items()}
 
 
 class PEDirMetadataSchema(BaseMetadataSchema):
@@ -110,12 +107,6 @@ class BoldMetadataSchema(PEDirMetadataSchema, TEMetadataSchema):
     slice_timing_file = fields.Str()
     slice_encoding_direction = fields.Str(validate=validate.OneOf(direction_codes))
 
-    @validates_schema
-    def validate_slice_timing(self, data, **_):
-        if "slice_timing" not in data or "repetition_time" not in data:
-            return  # nothing to validate
-        if "slice_timing_code" in data and data["slice_timing_code"] is not None:
-            raise ValidationError("Cannot specify both slice_timing and slice_timing_code at the same time")
 
 
 class BIDSFmapMetadataSchema(BaseMetadataSchema):
@@ -159,13 +150,6 @@ class RefMetadataSchema(Schema):
 class SpreadsheetMetadataSchema(Schema):
     variables = fields.List(fields.Nested(VariableSchema), dump_default=[])
 
-    @validates_schema
-    def validate_variables(self, data, **_):
-        if "variables" not in data:
-            return
-        names = [c["name"] for c in data["variables"] if "name" in c]
-        if len(names) > len(set(names)):
-            raise ValidationError("Duplicate variable name")
 
 
 metadata_schemas: list[Type[Schema]] = [

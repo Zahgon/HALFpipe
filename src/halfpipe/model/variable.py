@@ -27,5 +27,3 @@ class VariableSchema(OneOfSchema):
         "categorical": CategoricalVariableSchema,
     }
 
-    def get_obj_type(self, obj):
-        return obj.get("type")

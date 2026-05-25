@@ -53,46 +53,26 @@ class FieldMapFilesPanel(Widget):
         self.echo_time = 0
         self.step_classes = step_classes
 
-    def compose(self):
-        yield Vertical(
-            Button("❌", id="delete_button", classes="icon_buttons"),
-            *[
-                FileItem(id=self.id + "_" + str(i), classes="file_patterns", delete_button=False, pattern_class=step_class)
-                for i, step_class in enumerate(self.step_classes)
-            ],
-            classes=self.field_map_type + "_panel",
-        )
 
     def on_mount(self):
         """
         Sets the title for the panel based on the selected field map type after the widget is mounted.
         """
-        self.query(".{}_panel".format(self.field_map_type)).last(Vertical).border_title = self.field_map_types_dict[
-            self.field_map_type
-        ]
+        pass
 
     @on(Button.Pressed, "#delete_button")
     def _on_delete_button_pressed(self):
         """
         Removes the file pattern item and updates the context cache when the delete button is pressed.
         """
-        self.remove()
-        for i in range(len(self.step_classes)):
-            if self.id + "_" + str(i) in ctx.cache:
-                ctx.cache.pop(self.id + "_" + str(i))
+        pass
 
     @on(FileItem.SuccessChanged)
     def _on_file_item_success_changed(self, message: Message):
         """
         Changes widget border from green to red based on whether the files were successfully found.
         """
-        success_list = []
-        for i in range(len(self.step_classes)):
-            success_list.append(self.get_widget_by_id(self.id + "_" + str(i)).success_value)
-        if all(success_list) is True:
-            self.query(".{}_panel".format(self.field_map_type)).last(Vertical).styles.border = ("thick", "green")
-        else:
-            self.query(".{}_panel".format(self.field_map_type)).last(Vertical).styles.border = ("thick", "red")
+        pass
 
 
 class DataSummaryLine(Widget):
@@ -147,12 +127,6 @@ class DataSummaryLine(Widget):
         super().__init__(id=id, classes=classes)
         self.summary = {"message": "Found 0 files.", "files": []} if summary is None else summary
 
-    def compose(self) -> ComposeResult:
-        yield Horizontal(
-            Static(self.summary["message"], id="feedback"),
-            Button("👁", id="show_button", classes="icon_buttons"),
-            classes="feedback_container",
-        )
 
     def update_summary(self, summary: dict[str, list[str] | str | dict[str, int]]) -> None:
         """
@@ -169,4 +143,4 @@ class DataSummaryLine(Widget):
         """
         Handles the event when the show button is pressed, displaying a list of files in a modal dialog.
         """
-        self.app.push_screen(ListOfFiles(self.summary))
+        pass

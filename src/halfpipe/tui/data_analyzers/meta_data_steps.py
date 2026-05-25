@@ -94,8 +94,6 @@ class SliceTimingFileStep:
 
     key = "slice_timing"
 
-    def _messagefun(self):
-        return self.message
 
     def __init__(self, app, filters, schema, suggestion, appendstr="", current_specfileobj=None):
         """

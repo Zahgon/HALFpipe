@@ -34,55 +34,7 @@ class Formatter(logging.Formatter):
         super(Formatter, self).__init__(fmt=fmt, datefmt=datefmt, style="{")
         self.converter = time.localtime
 
-    def format_exception(self, exc_info):
-        msg = stackprinter.format(exc_info)
-        msg_indented = "    " + "\n    ".join(msg.split("\n")).strip()
-        return msg_indented
 
-    def format(self, record):
-        formatted = super(Formatter, self).format(record)
-
-        lines = formatted.splitlines(True)
-
-        lines = [line for line in lines if line.strip("\r\n\t ")]  # remove empty lines
-
-        if len(lines) == 0 or len(lines) == 1:
-            return formatted
-
-        else:
-            lines[0] = f"{lines[0]}"
-            for i in range(1, len(lines) - 1):
-                lines[i] = f"│ {lines[i]}"
-
-            lines[-1] = f"└─{lines[-1]}"
-
-            if lines[-1][-1] == "\n":
-                lines[-1] = lines[-1][:-1]
-
-            return "".join(lines)
 
 
 class ColorFormatter(Formatter):
-    def format(self, record):
-        formatted = super(ColorFormatter, self).format(record)
-
-        levelname = record.levelname
-
-        if levelname in colors:
-            color = colors[levelname]
-
-            lines = formatted.splitlines(True)
-
-            for i in range(len(lines)):
-                line = lines[i]
-
-                newlinechr = ""
-                if line[-1] == "\n":
-                    newlinechr = line[-1]
-                    line = line[:-1]
-
-                lines[i] = f"{color}{line}{fillseq}{resetseq}{newlinechr}"
-
-            return "".join(lines)
-
-        return formatted

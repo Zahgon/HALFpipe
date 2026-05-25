@@ -222,24 +222,8 @@ settingdict = {
 }
 
 
-def move_setting_smoothing_to_feature(ctx):
-    if ctx.spec.settings[-1].get("smoothing") is not None:
-        smoothing = ctx.spec.settings[-1]["smoothing"]
-        del ctx.spec.settings[-1]["smoothing"]
-        ctx.spec.features[-1].smoothing = smoothing
 
 
-def on_falff_setting(ctx):
-    move_setting_smoothing_to_feature(ctx)
-
-    name = format_like_bids(f"{ctx.spec.features[-1].name} unfiltered setting")
-
-    unfiltered_setting = deepcopy(ctx.spec.settings[-1])
-    unfiltered_setting["name"] = name
-    del unfiltered_setting["bandpass_filter"]  # remove bandpass filter, keep everything else
-    ctx.spec.settings.append(unfiltered_setting)
-
-    ctx.spec.features[-1].unfiltered_setting = name
 
 
 def get_zscore_step(next_step_type):

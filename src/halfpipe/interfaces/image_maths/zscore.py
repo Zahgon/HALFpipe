@@ -9,14 +9,3 @@ from ..array_transform import ArrayTransform
 
 
 class ZScore(ArrayTransform):
-    def _transform(self, array: npt.NDArray[np.float64]) -> npt.NDArray[np.float64]:
-        mean = np.nanmean(array).item()
-        std = np.nanstd(array).item()
-
-        if np.isclose(std, 0.0):
-            std = 1.0
-
-        np.subtract(array, mean, out=array)
-        np.true_divide(array, std, out=array)
-
-        return array

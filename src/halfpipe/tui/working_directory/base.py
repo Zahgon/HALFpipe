@@ -108,89 +108,11 @@ class WorkDirectory(Widget):
         ComposeResult
             The result of composing the child widgets.
         """
-        work_directory = Vertical(
-            Static(
-                "Set path to the working directory. Here all output will be stored. By selecting a directory with existing \
-spec.json file it is possible to load the therein configuration.",
-                id="description",
-            ),
-            FileBrowser(path_to="WORKING DIRECTORY", id="work_dir_file_browser"),
-            id="work_directory",
-            classes="components",
-        )
-        freesurfer_directory = Vertical(
-            Static(
-                "Path to the freesurfer license. By default the path will be set to the working directory.", id="description"
-            ),
-            FileBrowser(
-                path_to="FREESURFER LICENSE", path_test_function=path_test_with_isfile_true, id="fs_license_file_browser"
-            ),
-            id="fs_license_file_panel",
-            classes="components",
-        )
-        work_directory.border_title = "Select working directory"
-        freesurfer_directory.border_title = "Select freesurfer license directory"
+        pass
 
-        yield work_directory
-        yield freesurfer_directory
-        yield Horizontal(Button("Next 🡆", id="next_button", classes="navigation_buttons"), classes="navigation_button_panel")
 
-    @on(Button.Pressed, "#next_button")
-    def on_next_button_pressed(self, event: Button) -> None:
-        self.app.tab_manager.query_one(Tabs).action_next_tab()
 
-    @on(FileBrowser.Changed, "#work_dir_file_browser")
-    async def _on_work_dir_file_browser_changed(self, message: Message) -> None:
-        try:
-            init_workdir(message.selected_path)
-            self._working_dir_path_passed(message.selected_path)
-        except RuntimeError as e:
-            await self.app.push_screen(
-                Confirm(
-                    f"{e}",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    title="Path Error",
-                    classes="confirm_error",
-                )
-            )
-            self.get_widget_by_id("work_dir_file_browser").update_input(None, send_message=False)
-            self.get_widget_by_id("work_dir_file_browser").styles.border = ("solid", "red")
-            ctx.workdir = None
-            self.app.opts.workdir = None
 
-    @on(FileBrowser.Changed, "#fs_license_file_browser")
-    async def _on_fs_license_file_browser_changed(self, message: Message) -> None:
-        await self.evaluate_fs_license(message.selected_path)
-
-    async def evaluate_fs_license(self, fs_file_path) -> None:
-        os.environ["FS_LICENSE"] = fs_file_path
-        if not check_valid_fs_license():
-            self.app.push_screen(
-                Confirm(
-                    "No freesurfer license found!\nSet path to a valid Freesurfer license file.",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    title="Path Error",
-                    classes="confirm_error",
-                )
-            )
-            self.get_widget_by_id("fs_license_file_browser").styles.border = ("solid", "red")
-            self.fs_license_file_found = False
-        else:
-            self.app.push_screen(
-                Confirm(
-                    "Valid freesurfer license found!",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    title="License found",
-                )
-            )
-            ctx.fs_license_file = fs_file_path
-            self.get_widget_by_id("fs_license_file_browser").styles.border = ("solid", "green")
-            self.fs_license_file_found = True
-            self.app.flags_to_show_tabs["fs_license_file_found"] = True
-            self.app.show_hidden_tabs()
 
     @work(exclusive=False, name="work_dir_path_passed_worker")
     async def _working_dir_path_passed(self, selected_path: str | Path):
@@ -213,99 +135,7 @@ spec.json file it is possible to load the therein configuration.",
         message : Message
             The message object containing information about the change.
         """
-
-        async def working_directory_override(override) -> None:
-            """
-            Handles the user's decision to override an existing spec file.
-
-            This nested function is called after the user has been prompted
-            about overriding an existing 'spec.json' file. If the user
-            chooses to override, it backs up the original 'spec.json' file.
-
-            Parameters
-            ----------
-            override : bool
-                True if the user chose to override the existing file,
-                False otherwise.
-            """
-            if override:
-                # make a backup copy from the original spec file
-                if ctx.workdir is not None:
-                    copy_and_rename_file(os.path.join(ctx.workdir, "spec.json"))
-            else:
-                self.get_widget_by_id("work_dir_file_browser").update_input(None)
-                ctx.workdir = None
-                self.app.opts.workdir = ctx.workdir
-
-        async def existing_spec_file_decision(load):
-            """
-            Handles the user's decision to load or override an existing spec file.
-
-            This nested function is called when an existing 'spec.json' file
-            is found in the selected working directory. It prompts the user
-            to decide whether to load the existing settings or override them.
-
-            Parameters
-            ----------
-            load : bool
-                True if the user chose to load the existing file,
-                False otherwise.
-            """
-            if load:
-                await self._load_from_spec()
-            else:
-                self.app.push_screen(
-                    Confirm(
-                        "This action will override the existing spec in the selected working directory. Are you sure?",
-                        title="Override existing working directory",
-                        id="confirm_override_spec_file_modal",
-                        classes="confirm_warning",
-                    ),
-                    working_directory_override,
-                )
-
-        # Change border to green
-        self.get_widget_by_id("work_dir_file_browser").styles.border = ("solid", "green")
-        # add flag signaling that the working directory was set
-        self.app.flags_to_show_tabs["from_working_dir_tab"] = True
-        self.app.show_hidden_tabs()
-
-        # add path to context object
-        ctx.workdir = Path(selected_path)
-        self.app.opts.workdir = ctx.workdir
-        # Load the spec and by this we see whether there is existing spec file or not
-        try:
-            self.existing_spec = load_spec(workdir=ctx.workdir)
-        except Exception as e:
-            await self.app.push_screen_wait(
-                Confirm(
-                    f"Spec file load failed! Reason:\n{e}",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    title="Load error",
-                    classes="confirm_error",
-                )
-            )
-            self.get_widget_by_id("work_dir_file_browser").update_input(None, send_message=False)
-            ctx.workdir = None
-            self.app.opts.workdir = ctx.workdir
-            return
-        if self.existing_spec is not None:
-            result = await self.app.push_screen_wait(
-                Confirm(
-                    "Existing spec file was found! Do you want to load the settings or \
-overwrite the working directory and start a new analysis?",
-                    title="Spec file found",
-                    left_button_text="Load",
-                    right_button_text="Override",
-                    id="confirm_spec_load_modal",
-                    classes="confirm_warning",
-                )
-            )
-            await existing_spec_file_decision(result)
-        elif ctx.workdir is not None:
-            self._evaluate_license_worker(str(selected_path))
+        pass
 
     async def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
         """
@@ -322,77 +152,12 @@ overwrite the working directory and start a new analysis?",
             The event object containing information about the worker's
             state change.
         """
-        if event.state == WorkerState.SUCCESS:
-            if event.worker.name == "fill_ctx_spec":
-                self._cache_file_patterns()
-            if event.worker.name == "cache_file_worker" and self.data_input_success is True:
-                self._mount_features()
-            if event.worker.name == "feature_worker":
-                self._mount_file_panels()
-            if event.worker.name == "file_panels_worker":
-                self._mount_models()
-            if event.worker.name == "models_worker":
-                selected_path = self.get_widget_by_id("work_dir_file_browser").selected_path
-                self._evaluate_license_worker(str(selected_path))
+        pass
 
-    @work(exclusive=True, name="license_worker")
-    async def _evaluate_license_worker(self, selected_path: str):
-        try:
-            full_fs_license_path = os.path.join(selected_path, "license.txt")
-            if not self.app.flags_to_show_tabs["fs_license_file_found"]:
-                self.get_widget_by_id("fs_license_file_browser").update_input(full_fs_license_path, send_message=False)
-                await self.evaluate_fs_license(full_fs_license_path)
-        except Exception as e:
-            self.app.push_screen(
-                Confirm(
-                    f"Error in freesurfer license check. The error message will be shown below.\n{e}",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    title="Path Error",
-                    classes="confirm_error",
-                )
-            )
 
-    async def _load_from_spec(self):
-        # Go to Stage 1 of the loading process
-        self._fill_ctx_spec()
 
-    @work(exclusive=True, name="fill_ctx_spec")
-    async def _fill_ctx_spec(self):
-        # Stage 1 of the loading process
-        await fill_ctx_spec(self)
 
-    @work(exclusive=True, name="cache_file_worker")
-    async def _cache_file_patterns(self):
-        # Stage 2 of the loading process
-        await cache_file_patterns(self)
 
-    @work(exclusive=True, name="feature_worker")
-    async def _mount_features(self):
-        # Stage 3 of the loading process
-        await mount_features(self)
 
-    @work(exclusive=True, name="file_panels_worker")
-    async def _mount_file_panels(self) -> None:
-        # Stage 4 of the loading process
-        await mount_file_panels(self)
 
-    @work(exclusive=True, name="models_worker")
-    async def _mount_models(self) -> None:
-        # Stage 5 of the loading process
-        await mount_models(self)
 
-    @on(Button.Pressed, ".-read-only")
-    def on_anything_click(self):
-        if self.app.flags_to_show_tabs["from_working_dir_tab"] and self.app.flags_to_show_tabs["from_input_data_tab"]:
-            self.app.push_screen(
-                Confirm(
-                    "Input entries cannot be changes now! Restart UI to change them.",
-                    title="Read-only",
-                    left_button_text=False,
-                    right_button_text="OK",
-                    right_button_variant="default",
-                    id="read_only_modal",
-                    classes="confirm_error",
-                )
-            )

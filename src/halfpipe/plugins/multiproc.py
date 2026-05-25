@@ -21,29 +21,6 @@ from ..utils.multiprocessing import get_init_args, mp_context
 from .reftracer import PathReferenceTracer
 
 
-def initializer(
-    init_args: tuple[set[int], dict[str, Any], dict[str, str], str],
-    plugin_args: dict,
-) -> None:
-    from ..utils.multiprocessing import initializer
-
-    initializer(*init_args)
-
-    from ..utils.pickle import patch_nipype_unpickler
-
-    patch_nipype_unpickler()
-
-    watchdog = plugin_args.get("watchdog", False)
-    if watchdog is True:
-        from ..watchdog import init_watchdog
-
-        init_watchdog()
-
-    resource_monitor = plugin_args.get("resource_monitor", False)
-    if resource_monitor is True:
-        import nipype
-
-        nipype.config.enable_resource_monitor()
 
 
 # Run node
@@ -63,23 +40,7 @@ def run_node(node: pe.Node, updatehash: bool, taskid: int):
     result : dictionary
         dictionary containing the node runtime results and stats
     """
-
-    # Init variables
-    result: dict[str, Any] = dict(result=None, traceback=None, taskid=taskid)
-
-    # Try and execute the node via node.run()
-    try:
-        result["result"] = node.run(updatehash=updatehash)
-    except Exception:  # catch all here
-        result["traceback"] = format_current_exception()
-        result["result"] = node.result
-
-    # Avoid matplotlib memory leak
-    plt.close("all")
-    gc.collect()
-
-    # Return the result dictionary
-    return result
+    pass
 
 
 class MultiProcPlugin(nip.MultiProcPlugin):
@@ -128,66 +89,13 @@ class MultiProcPlugin(nip.MultiProcPlugin):
         if self._keep != "all":
             self._rt = PathReferenceTracer(self._cwd)
 
-    def _postrun_check(self):
-        shutdown_thread = Thread(target=self.pool.shutdown, kwargs=dict(wait=True), daemon=True)
-        shutdown_thread.start()
-        shutdown_thread.join(timeout=10)
-        if shutdown_thread.is_alive():
-            logger.warning(
-                "Shutdown of ProcessPoolExecutor timed out. This may lead to errors "
-                "when the program closes. These error messages can usually be ignored"
-            )
 
-    def _submit_job(self, node, updatehash=False):
-        self._taskid += 1
 
-        # Don't allow streaming outputs
-        if getattr(node.interface, "terminal_output", "") == "stream":
-            node.interface.terminal_output = "allatonce"
 
-        result_future = self.pool.submit(run_node, node, updatehash, self._taskid)
-        result_future.add_done_callback(self._async_callback)
-        self._task_obj[self._taskid] = result_future
 
-        logger.debug("[MultiProc] Submitted task %s (taskid=%d).", node.fullname, self._taskid)
-        return self._taskid
-
-    def _generate_dependency_list(self, graph):
-        if self._rt is not None:
-            for node in graph.nodes:
-                self._rt.add_node(node)
-            for node in graph.nodes:
-                self._rt.set_node_pending(node)
-        super(MultiProcPlugin, self)._generate_dependency_list(graph)
-
-    def _task_finished_cb(self, jobid, cached=False):
-        assert self.procs is not None
-
-        if self._rt is not None:
-            name = self.procs[jobid].fullname
-            unmark = True  # try to delete this when dependencies finish
-            if self._keep == "some" and "fmriprep_wf" in name:
-                unmark = False  # keep fmriprep if keep is "some"
-            if self._keep == "some" and "ica_aroma_components_wf" in name:
-                unmark = False
-            if hasattr(self.procs[jobid], "keep") and self.procs[jobid].keep is True:
-                unmark = False  # always keep feature outputs
-            self._rt.set_node_complete(self.procs[jobid], unmark)
-        super(MultiProcPlugin, self)._task_finished_cb(jobid, cached=cached)
-
-    def _async_callback(self, args):
-        assert self.procs is not None
-
-        try:
-            result = args.result()
-            self._taskresult[result["taskid"]] = result
-        except Exception as e:
-            running_tasks = [self.procs[jobid].fullname for _, jobid in self.pending_tasks]
-            logger.exception(f"Exception for {args} while running {running_tasks}", exc_info=e)
 
     def _remove_node_dirs(self):
         """
         Removes directories whose outputs have already been used up
         """
-        if self._rt is not None:
-            self._rt.collect_and_delete()
+        pass

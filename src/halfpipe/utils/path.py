@@ -109,11 +109,6 @@ def is_empty(path: Path | str) -> bool:
     return True
 
 
-def validate_workdir(path: Path | str):
-    try:
-        return Path(path).is_dir()
-    except TypeError:
-        return False
 
 
 def is_hidden(path: Path | str) -> bool:

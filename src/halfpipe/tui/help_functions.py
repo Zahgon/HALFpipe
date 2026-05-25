@@ -24,8 +24,6 @@ from .data_analyzers.context import ctx
 class LoadingModal(ModalScreen):
     """A modal screen that shows while something loads."""
 
-    def compose(self):
-        yield Center(Static("⏳ Loading, please wait..."), id="load_modal_panel")
 
 
 def with_loading_modal(func):
@@ -34,20 +32,6 @@ def with_loading_modal(func):
     Automatically handles cleanup and error display.
     """
 
-    @functools.wraps(func)
-    async def wrapper(self, *args, **kwargs):
-        await self.app.push_screen(LoadingModal(id="load_modal"))
-        try:
-            # Run the decorated async method
-            return await func(self, *args, **kwargs)
-        except Exception as e:
-            # Notify the user gracefully
-            self.app.notify(f"⚠️ Error: {e}", severity="error", timeout=8)
-            self.app.log(traceback.format_exc())
-
-        finally:
-            # Always close the modal
-            await self.app.pop_screen()
 
     return wrapper
 
@@ -227,7 +211,7 @@ def tag_the_string(tagvals: List[str]) -> List[str]:
         A new list with each original string element wrapped in double quotes.
         Example: ['"value1"', '"value2"'].
     """
-    return [f'"{tagval}"' for tagval in tagvals]
+    pass
 
 
 def copy_and_rename_file(src_file: str) -> str:

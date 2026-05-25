@@ -29,21 +29,3 @@ class GicaCmd(CommandLine):
     output_spec = GicaCmdOutputSpec
     _cmd = "gica_cmd"
 
-    def _list_outputs(self):
-        outputs = self.output_spec().get()
-
-        outputs["components"] = os.path.abspath("gica_cmd_sub01_component_ica_s1_.nii")
-        outputs["mask"] = os.path.abspath("gica_cmdMask.nii")
-
-        timecourses_image = nib.nifti1.load("gica_cmd_sub01_timecourses_ica_s1_.nii")
-        timecourses = timecourses_image.get_fdata()
-        timecourses = timecourses.squeeze()
-        np.savetxt("timecourses.tsv", timecourses, **savetxt_argdict)
-        outputs["timecourses"] = os.path.abspath("timecourses.tsv")
-
-        postprocessing_results = scipy.io.matlab.loadmat("gica_cmd_postprocess_results/gica_cmd_post_process_sub_001.mat")
-        fnc_corrs = postprocessing_results["fnc_corrs"].squeeze(0)
-        np.savetxt("fnc_corrs.tsv", fnc_corrs, **savetxt_argdict)
-        outputs["fnc_corrs"] = os.path.abspath("fnc_corrs.tsv")
-
-        return outputs

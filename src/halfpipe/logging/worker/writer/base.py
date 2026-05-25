@@ -19,9 +19,6 @@ class Writer:
         self.can_write = Event()
         self.levelno = levelno
 
-    @property
-    def delay(self) -> float:
-        return 1.0
 
     def filter_message(self, message: LogMessage) -> bool:
         if not isinstance(message, LogMessage):
@@ -84,11 +81,6 @@ class Writer:
     def acquire(self):
         pass
 
-    def emit_message(self, message: LogMessage):
-        msg = message.long_msg
-        levelno = message.levelno
-
-        self.emit(msg, levelno)
 
     @abstractmethod
     def emit(self, msg: str, levelno: int):

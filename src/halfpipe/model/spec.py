@@ -57,55 +57,9 @@ class SpecSchema(Schema):
     features = fields.List(fields.Nested(FeatureSchema), dump_default=[], required=True)
     models = fields.List(fields.Nested(ModelSchema), dump_default=[], required=True)
 
-    @validates_schema
-    def validate_analyses(self, data, **kwargs):
-        names = []
-        for field in ["settings", "features", "models"]:
-            if field not in data:
-                continue  # validation error will be raised independently
-            names.extend([a["name"] if isinstance(a, dict) else a.name for a in data[field]])
-        if len(names) > len(set(names)):
-            raise ValidationError("Duplicate name")
 
-    @validates_schema
-    def validate_files(self, data, **kwargs) -> None:
-        if "files" not in data:
-            return  # validation error will be raised independently
-        desc_value_sets: dict[str, set[str]] = {"seed": set(), "map": set()}
-        if not isinstance(data["files"], list):
-            return  # validation error will be raised independently
-        for fileobj in data["files"]:
-            if not isinstance(fileobj, File):
-                raise ValidationError("List elements need to be File objects")
 
-            tags = fileobj.tags
 
-            if "desc" in tags:
-                desc = fileobj.tags["desc"]
-                suffix = fileobj.suffix
-
-                if suffix in desc_value_sets:
-                    desc_value_set = desc_value_sets[suffix]
-                    if desc in desc_value_set:
-                        raise ValidationError(f"{humanize(suffix)} names need to be unique")
-
-                    desc_value_set.add(desc)
-
-    @validates_schema
-    def validate_models(self, data, **_):
-        if "models" not in data or "files" not in data:
-            return  # validation error will be raised independently
-
-        spreadsheets = set(file.path for file in data["files"] if file.datatype == "spreadsheet")
-
-        for model in data["models"]:
-            if model.type == "lme":
-                if model.spreadsheet not in spreadsheets:
-                    raise ValidationError(f'Spreadsheet "{model.spreadsheet}" not found in files')
-
-    @post_load
-    def make_object(self, data, **_):
-        return Spec(**data)
 
 
 class Spec:
@@ -119,13 +73,7 @@ class Spec:
         for k, v in kwargs.items():
             setattr(self, k, v)
 
-    @property
-    def timestampstr(self):
-        return self.timestamp.strftime(timestamp_format)
 
-    @property
-    def uuid(self):
-        return uuid.uuid5(namespace, hex_digest(SpecSchema().dump(self)))
 
     def validate(self):
         SpecSchema().validate(self.__dict__)
@@ -173,17 +121,6 @@ def load_spec(
     return None
 
 
-def readspec(stdin_spec: dict, logger=logger) -> Spec | None:
-    try:
-        logger.info("Loading spec file from STDIN")
-        spec = SpecSchema().loads(json.dumps(stdin_spec), many=False)
-        if isinstance(spec, Spec):
-            return spec
-
-    except marshmallow.exceptions.ValidationError as e:
-        logger.warning(f"Ignored validation error on STDIN, {e}", exc_info=e)
-
-    return None
 
 
 def save_spec(

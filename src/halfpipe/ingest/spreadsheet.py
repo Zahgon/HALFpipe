@@ -143,10 +143,6 @@ def read_spreadsheet(file_name: Path | str, extension: str | None = None, **kwar
 
     # data_frame.reset_index(inplace=True)  # restore detected index_col
 
-    def strip_if_str(s):
-        if isinstance(s, str):
-            return s.strip()
-        return s
 
     data_frame.rename(columns=strip_if_str, inplace=True)
 

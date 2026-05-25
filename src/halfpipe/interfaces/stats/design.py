@@ -38,24 +38,6 @@ class GroupDesign(SimpleInterface):
     input_spec = GroupDesignInputSpec
     output_spec = DesignOutputSpec
 
-    def _run_interface(self, runtime):
-        data_frame = prepare_data_frame(
-            self.inputs.spreadsheet,
-            self.inputs.variabledicts,
-            self.inputs.subjects,
-            na_action="impute",
-        )
-        regressors, contrasts, numbers, names = group_design(
-            data_frame,
-            self.inputs.contrastdicts,
-            self.inputs.subjects,
-        )
-        self._results["regressors"] = regressors
-        self._results["contrasts"] = contrasts
-        self._results["contrast_numbers"] = numbers
-        self._results["contrast_names"] = names
-
-        return runtime
 
 
 class InterceptOnlyDesignInputSpec(TraitedSpec):
@@ -68,14 +50,6 @@ class InterceptOnlyDesign(SimpleInterface):
     input_spec = InterceptOnlyDesignInputSpec
     output_spec = DesignOutputSpec
 
-    def _run_interface(self, runtime):
-        regressors, contrasts, numbers, names = intercept_only_design(self.inputs.n_copes)
-        self._results["regressors"] = regressors
-        self._results["contrasts"] = contrasts
-        self._results["contrast_numbers"] = numbers
-        self._results["contrast_names"] = names
-
-        return runtime
 
 
 class DesignSpec(TraitedSpec):
@@ -122,9 +96,3 @@ class MakeDesignTsv(SimpleInterface):
     input_spec = MakeDesignTsvInputSpec
     output_spec = MakeDesignTsvOutputSpec
 
-    def _run_interface(self, runtime):
-        self._results["design_tsv"], self._results["contrasts_tsv"] = make_design_tsv(
-            self.inputs.regressors, self.inputs.contrasts, self.inputs.row_index
-        )
-
-        return runtime

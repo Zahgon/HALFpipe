@@ -94,20 +94,6 @@ class Merge(SimpleInterface):
     input_spec = MergeInputSpec
     output_spec = MergeOutputSpec
 
-    def _run_interface(self, runtime):
-        self._merged_file = None
-
-        in_files = self.inputs.in_files
-
-        if not isdefined(in_files) or len(in_files) == 0:
-            self._results["merged_file"] = False
-            return runtime
-
-        merged_file = merge(in_files, self.inputs.dimension)
-
-        self._results["merged_file"] = str(merged_file)
-
-        return runtime
 
 
 class MergeMaskInputSpec(TraitedSpec):
@@ -118,17 +104,3 @@ class MergeMask(SimpleInterface):
     input_spec = MergeMaskInputSpec
     output_spec = MergeOutputSpec
 
-    def _run_interface(self, runtime):
-        self._merged_file = None
-
-        in_files = self.inputs.in_files
-
-        if not isdefined(in_files) or len(in_files) == 0:
-            self._results["merged_file"] = False
-            return runtime
-
-        merged_file = merge_mask(in_files)
-
-        self._results["merged_file"] = str(merged_file)
-
-        return runtime

@@ -47,14 +47,6 @@ def dump_pickle_lzma(file_path: str, obj):
 
 
 class Unpickler(pickle.Unpickler):
-    def find_class(self, module: str, name: str):
-        module = re.sub(r"^halfpipe\.workflow(?=\.|$)", "halfpipe.workflows", module)
-        module = re.sub(r"^halfpipe\.interface(?=\.|$)", "halfpipe.interfaces", module)
-
-        if module == "halfpipe.interfaces.stats.tsv":
-            module = "halfpipe.interfaces.stats.design"
-
-        return super(Unpickler, self).find_class(module, name)
 
 
 def load_pickle(file_path: str | Path):

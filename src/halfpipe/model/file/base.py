@@ -42,6 +42,3 @@ class BaseFileSchema(Schema):
     path = fields.Str()
     tmplstr = fields.Str()
 
-    @post_load
-    def make_object(self, data, **kwargs):
-        return File(**data)

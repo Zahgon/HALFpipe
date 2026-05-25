@@ -166,7 +166,7 @@ class FilePatternStep:
         list[str]
             The list of entity colors.
         """
-        return self.entity_colors_list
+        pass
 
     @property
     def get_required_entities(self):
@@ -178,7 +178,7 @@ class FilePatternStep:
         list[str]
             The list of required entities.
         """
-        return self.required_entities
+        pass
 
     def check_extension(self, path):
         """
@@ -189,10 +189,7 @@ class FilePatternStep:
         path : str
             The path to the file.
         """
-        filedict = {**self.filedict, "path": path, "tags": {}}
-        _, ext = split_ext(path)
-        filedict["extension"] = self._transform_extension(ext)
-        self.schema().load(filedict)
+        pass
 
     def run_before_next_step(self):
         pass
@@ -210,64 +207,7 @@ class FilePatternStep:
         path : str
             The path to the file.
         """
-        # run
-        inv = {alias: entity for entity, alias in self.entity_display_aliases.items()}
-
-        i = 0
-        _path = ""
-        logger.debug(f"UI->FilePatternStep.run_before_next_step(): get_entities_in_path(path) {get_entities_in_path(path)}")
-        for match in tag_parse.finditer(path):
-            logger.debug(f"UI->FilePatternStep.run_before_next_step(): match: {match}")
-            groupdict = match.groupdict()
-            if groupdict.get("tag_name") in inv:
-                _path += path[i : match.start("tag_name")]
-                _path += inv[match.group("tag_name")]
-                i = match.end("tag_name")
-
-        _path += path[i:]
-        path = _path
-
-        # create file obj
-        tags = {} if tags is None else {("task" if self.tag_entity == "task" else "desc"): tags}
-
-        filedict = {**self.filedict, "path": path, "tags": tags}
-        _, ext = split_ext(path)
-        filedict["extension"] = self._transform_extension(ext)
-
-        loadresult = self.schema().load(filedict)
-        assert isinstance(loadresult, File), "Invalid schema load result"
-        self.fileobj = loadresult
-
-        # find what tasks will be given based on the uses task placeholder
-        tagglobres = list(tag_glob(self.fileobj.path))
-        task_set = set()
-        for _filepath, tagdict in tagglobres:
-            task = tagdict.get("task", None)
-            if task is not None:
-                task_set.add(task)
-
-        logger.info(f"UI->FilePatternStep.run_before_next_step-> ctx.available_images:{ctx.available_images}")
-        logger.info(f"UI->FilePatternStep.run_before_next_step-> found tasks:{task_set}")
-
-        # next
-        # ctx.spec.files.append(self.fileobj)
-        ctx.database.put(self.fileobj)  # we've got all tags, so we can add the fileobj to the index
-        ctx.cache[self.id_key]["files"] = self.fileobj  # type: ignore[assignment]
-
-        self.run_before_next_step()
-
-        if self.next_step_type is not None:
-            self.next_step_instance = self.next_step_type(
-                app=self.app,
-                callback=self.callback,
-                callback_message=self.callback_message,
-                id_key=self.id_key,
-                sub_id_key=self.filetype_str,
-                current_specfileobj=self.fileobj,
-            )
-            await self.next_step_instance.run()
-        else:
-            pass
+        pass
 
 
 class AnatStep(FilePatternStep):
@@ -383,13 +323,6 @@ class EventsStep(FilePatternStep):
             self.required_in_path_entities = ["task"]
         super().__init__(*args, **kwargs)
 
-    def run_before_next_step(self):
-        if len(self.taskset) == 1:
-            assert isinstance(self.fileobj, File)
-
-            if self.fileobj.tags.get("task") is None:
-                if "task" not in get_entities_in_path(self.fileobj.path):
-                    (self.fileobj.tags["task"],) = self.taskset
 
     def _transform_extension(self, ext):
         raise NotImplementedError()
